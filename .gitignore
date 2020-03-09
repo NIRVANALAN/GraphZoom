@@ -1,4 +1,4 @@
-graphzoom/embed_results/*
+graphzoom/embed_results/**/*.npy
 __pycache__
 .ipynb_checkpoints/
 graphzoom/output/

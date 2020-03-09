@@ -1,0 +1,475 @@
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/citeseer.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 1.847
+	Cycle complexity = 9.079
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     4528     1.000  1.000  2.72    3   1.5  3.00  4  
+2  AGG      1548     1.904500e+03 0.465  0.421  2.46    3   1.5  2.44  5  
+3  AGG      658      1.057500e+03 0.425  0.555  3.21    3   1.5  1.96  6  
+4  AGG      294      5.655000e+02 0.447  0.535  3.85    3   1.5  1.51  7  
+5  AGG      135      307      0.459  0.543  4.55    0   0.0  0.16  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/fused_citeseer.mtx'
+
+
+ReductionRatio =
+
+     2
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 2
+	Design gamma     = 1.5
+	Edge  complexity = 1.373
+	Cycle complexity = 3.131
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     1.904950e+04 1.000  1.000  11.45   3   1.5  3.00  4  
+2  AGG      1402     7104     0.421  0.373  10.13   0   0.0  0.13  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.51
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 16.573966423
+Graph Reduction  Time: 0.89
+Graph Embedding  Time: 136.01045761199998
+Graph Refinement Time: 0.018996125999990454
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 153.49342016099996
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/citeseer.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 1.847
+	Cycle complexity = 9.079
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     4528     1.000  1.000  2.72    3   1.5  3.00  4  
+2  AGG      1548     1.904500e+03 0.465  0.421  2.46    3   1.5  2.44  5  
+3  AGG      658      1.057500e+03 0.425  0.555  3.21    3   1.5  1.96  6  
+4  AGG      294      5.655000e+02 0.447  0.535  3.85    3   1.5  1.51  7  
+5  AGG      135      307      0.459  0.543  4.55    0   0.0  0.16  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/fused_citeseer.mtx'
+
+
+ReductionRatio =
+
+     5
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 3
+	Design gamma     = 1.5
+	Edge  complexity = 1.501
+	Cycle complexity = 4.892
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     1.904950e+04 1.000  1.000  11.45   3   1.5  3.00  4  
+2  AGG      1402     7104     0.421  0.373  10.13   3   1.5  1.81  5  
+3  AGG      574      2.447500e+03 0.409  0.345  8.53    0   0.0  0.08  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.536
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 15.942062115999999
+Graph Reduction  Time: 0.97
+Graph Embedding  Time: 45.85067524
+Graph Refinement Time: 0.024634339000002115
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 62.787371695000004
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/citeseer.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 1.847
+	Cycle complexity = 9.079
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     4528     1.000  1.000  2.72    3   1.5  3.00  4  
+2  AGG      1548     1.904500e+03 0.465  0.421  2.46    3   1.5  2.44  5  
+3  AGG      658      1.057500e+03 0.425  0.555  3.21    3   1.5  1.96  6  
+4  AGG      294      5.655000e+02 0.447  0.535  3.85    3   1.5  1.51  7  
+5  AGG      135      307      0.459  0.543  4.55    0   0.0  0.16  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/fused_citeseer.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 4
+	Design gamma     = 1.5
+	Edge  complexity = 1.550
+	Cycle complexity = 5.810
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     1.904950e+04 1.000  1.000  11.45   3   1.5  3.00  4  
+2  AGG      1402     7104     0.421  0.373  10.13   3   1.5  1.81  5  
+3  AGG      574      2.447500e+03 0.409  0.345  8.53    3   1.5  0.95  6  
+4  AGG      241      928      0.420  0.379  7.70    0   0.0  0.05  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.52
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 17.600686635
+Graph Reduction  Time: 1.03
+Graph Embedding  Time: 12.412714870000002
+Graph Refinement Time: 0.025369362000002837
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 31.068770867000005
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/citeseer.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 1.847
+	Cycle complexity = 9.079
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     4528     1.000  1.000  2.72    3   1.5  3.00  4  
+2  AGG      1548     1.904500e+03 0.465  0.421  2.46    3   1.5  2.44  5  
+3  AGG      658      1.057500e+03 0.425  0.555  3.21    3   1.5  1.96  6  
+4  AGG      294      5.655000e+02 0.447  0.535  3.85    3   1.5  1.51  7  
+5  AGG      135      307      0.459  0.543  4.55    0   0.0  0.16  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/fused_citeseer.mtx'
+
+
+ReductionRatio =
+
+    25
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 1.570
+	Cycle complexity = 6.335
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     1.904950e+04 1.000  1.000  11.45   3   1.5  3.00  4  
+2  AGG      1402     7104     0.421  0.373  10.13   3   1.5  1.81  5  
+3  AGG      574      2.447500e+03 0.409  0.345  8.53    3   1.5  0.95  6  
+4  AGG      241      928      0.420  0.379  7.70    3   1.5  0.54  7  
+5  AGG      109      384      0.452  0.414  7.05    0   0.0  0.03  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.497
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 16.359747381
+Graph Reduction  Time: 1.04
+Graph Embedding  Time: 3.7245341859999996
+Graph Refinement Time: 0.028338862000001797
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 21.152620429
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/citeseer.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 1.847
+	Cycle complexity = 9.079
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     4528     1.000  1.000  2.72    3   1.5  3.00  4  
+2  AGG      1548     1.904500e+03 0.465  0.421  2.46    3   1.5  2.44  5  
+3  AGG      658      1.057500e+03 0.425  0.555  3.21    3   1.5  1.96  6  
+4  AGG      294      5.655000e+02 0.447  0.535  3.85    3   1.5  1.51  7  
+5  AGG      135      307      0.459  0.543  4.55    0   0.0  0.16  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/citeseer/fused_citeseer.mtx'
+
+
+ReductionRatio =
+
+    50
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 6
+	Design gamma     = 1.5
+	Edge  complexity = 1.577
+	Cycle complexity = 6.663
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   3327     1.904950e+04 1.000  1.000  11.45   3   1.5  3.00  4  
+2  AGG      1402     7104     0.421  0.373  10.13   3   1.5  1.81  5  
+3  AGG      574      2.447500e+03 0.409  0.345  8.53    3   1.5  0.95  6  
+4  AGG      241      928      0.420  0.379  7.70    3   1.5  0.54  7  
+5  AGG      109      384      0.452  0.414  7.05    3   1.5  0.34  8  
+6  AGG      46       130      0.422  0.339  5.65    0   0.0  0.02  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.466
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 17.297630519000002
+Graph Reduction  Time: 1.13
+Graph Embedding  Time: 0.8547284150000003
+Graph Refinement Time: 0.02927686900000026
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 19.311635803

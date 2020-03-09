@@ -1,0 +1,378 @@
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/cora/cora.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 2.040
+	Cycle complexity = 9.748
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   2708     5278     1.000  1.000  3.90    3   1.5  3.00  4  
+2  AGG      1208     2607     0.446  0.494  4.32    3   1.5  2.61  5  
+3  AGG      531      1498     0.440  0.575  5.64    3   1.5  2.17  6  
+4  AGG      227      880      0.427  0.587  7.75    3   1.5  1.86  7  
+5  AGG      105      505      0.463  0.574  9.62    0   0.0  0.11  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/cora/fused_cora.mtx'
+
+
+ReductionRatio =
+
+     2
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 2
+	Design gamma     = 1.5
+	Edge  complexity = 1.479
+	Cycle complexity = 3.247
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   2708     8211     1.000  1.000  6.06    3   1.5  3.00  4  
+2  AGG      1169     3.936500e+03 0.432  0.479  6.73    0   0.0  0.25  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.796
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 1.2672386789999999
+Graph Reduction  Time: 0.89
+Graph Embedding  Time: 117.280711813
+Graph Refinement Time: 0.013151202000003082
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 119.451101694
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/cora/cora.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 2.040
+	Cycle complexity = 9.748
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   2708     5278     1.000  1.000  3.90    3   1.5  3.00  4  
+2  AGG      1208     2607     0.446  0.494  4.32    3   1.5  2.61  5  
+3  AGG      531      1498     0.440  0.575  5.64    3   1.5  2.17  6  
+4  AGG      227      880      0.427  0.587  7.75    3   1.5  1.86  7  
+5  AGG      105      505      0.463  0.574  9.62    0   0.0  0.11  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/cora/fused_cora.mtx'
+
+
+ReductionRatio =
+
+     5
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 3
+	Design gamma     = 1.5
+	Edge  complexity = 1.721
+	Cycle complexity = 5.565
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   2708     8211     1.000  1.000  6.06    3   1.5  3.00  4  
+2  AGG      1169     3.936500e+03 0.432  0.479  6.73    3   1.5  2.40  5  
+3  AGG      519      1985     0.444  0.504  7.65    0   0.0  0.16  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.803
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 1.2273566489999999
+Graph Reduction  Time: 0.95
+Graph Embedding  Time: 45.833794034
+Graph Refinement Time: 0.017302786000001902
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 48.028453469
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/cora/cora.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 2.040
+	Cycle complexity = 9.748
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   2708     5278     1.000  1.000  3.90    3   1.5  3.00  4  
+2  AGG      1208     2607     0.446  0.494  4.32    3   1.5  2.61  5  
+3  AGG      531      1498     0.440  0.575  5.64    3   1.5  2.17  6  
+4  AGG      227      880      0.427  0.587  7.75    3   1.5  1.86  7  
+5  AGG      105      505      0.463  0.574  9.62    0   0.0  0.11  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/cora/fused_cora.mtx'
+
+
+ReductionRatio =
+
+     9
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 4
+	Design gamma     = 1.5
+	Edge  complexity = 1.840
+	Cycle complexity = 7.303
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   2708     8211     1.000  1.000  6.06    3   1.5  3.00  4  
+2  AGG      1169     3.936500e+03 0.432  0.479  6.73    3   1.5  2.40  5  
+3  AGG      519      1985     0.444  0.504  7.65    3   1.5  1.79  6  
+4  AGG      218      979      0.420  0.493  8.98    0   0.0  0.11  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.795
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 1.269632723
+Graph Reduction  Time: 0.98
+Graph Embedding  Time: 12.593976878
+Graph Refinement Time: 0.018728011000000322
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 14.862337612
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/cora/cora.mtx'
+
+
+ReductionRatio =
+
+    12
+
+
+Fusion =
+
+  logical
+
+   1
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 2.040
+	Cycle complexity = 9.748
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   2708     5278     1.000  1.000  3.90    3   1.5  3.00  4  
+2  AGG      1208     2607     0.446  0.494  4.32    3   1.5  2.61  5  
+3  AGG      531      1498     0.440  0.575  5.64    3   1.5  2.17  6  
+4  AGG      227      880      0.427  0.587  7.75    3   1.5  1.86  7  
+5  AGG      105      505      0.463  0.574  9.62    0   0.0  0.11  0  
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/usr/local/MATLAB/MATLAB_Runtime/v94/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/v94/sys/opengl/lib/glnxa64
+Loading Graph to be Reduced......
+
+GraphPath =
+
+    'dataset/cora/fused_cora.mtx'
+
+
+ReductionRatio =
+
+    19
+
+
+Fusion =
+
+  logical
+
+   0
+
+
+SavePath =
+
+    'reduction_results/'
+
+###### Running LamgSetup ######
+Multi-level setup
+	#levels          = 5
+	Design gamma     = 1.5
+	Edge  complexity = 1.902
+	Cycle complexity = 8.578
+l  Type     Nodes    Edges    NodeR  EdgeR   DegL1   Nu  Gam  Work  TV 
+=======================================================================
+1  FINEST   2708     8211     1.000  1.000  6.06    3   1.5  3.00  4  
+2  AGG      1169     3.936500e+03 0.432  0.479  6.73    3   1.5  2.40  5  
+3  AGG      519      1985     0.444  0.504  7.65    3   1.5  1.79  6  
+4  AGG      218      979      0.420  0.493  8.98    3   1.5  1.31  7  
+5  AGG      100      503      0.459  0.514  10.06   0   0.0  0.07  0  
+%%%%%% Loading Graph Data %%%%%%
+%%%%%% Starting Graph Fusion %%%%%%
+Successfully Writing Fused Graph.mtx file!!!!!!
+%%%%%% Starting Graph Reduction %%%%%%
+%%%%%% Starting Graph Embedding %%%%%%
+%%%%%% Starting Graph Refinement %%%%%%
+%%%%%% Starting Evaluation %%%%%%
+Loading data...
+Running regression..
+Test Accuracy:  0.769
+%%%%%% Single CPU time %%%%%%
+Graph Fusion     Time: 1.335947991
+Graph Reduction  Time: 1.03
+Graph Embedding  Time: 3.4832020409999997
+Graph Refinement Time: 0.020938199999999796
+Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = 5.870088232
