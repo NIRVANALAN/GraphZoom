@@ -31,6 +31,7 @@ Requirements
 Installation
 ------------
 1. `install matlab compiler runtime 2018a(Linux)` (https://www.mathworks.com/products/compiler/matlab-runtime.html)
+`./install -mode silent -agreeToLicense yes`
 2. `pip install -r requirements.txt`
 
 Usage
