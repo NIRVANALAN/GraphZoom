@@ -3,3 +3,4 @@ __pycache__
 .ipynb_checkpoints/
 graphzoom/output/
 .vscode/
+graphzoom/reduction_results/*.mtx

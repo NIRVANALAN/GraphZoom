@@ -143,6 +143,7 @@ def main():
                         help="path of embedding result")
     parser.add_argument("-m", "--embed_method", type=str, default="deepwalk",
                         help="[deepwalk, node2vec, graphsage]")
+    parser.add_argument("-pre", "--prefix", type=str, default="")
     parser.add_argument("-f", "--fusion", default=True, action="store_false",
                         help="whether use graph fusion")
     parser.add_argument("-p", "--power", default=False, action="store_true",
@@ -167,7 +168,7 @@ def main():
 
 ######Load Data######
     print("%%%%%% Loading Graph Data %%%%%%")
-    laplacian = json2mtx(dataset)
+    laplacian = load_dataset(dataset, args.prefix)
     if args.fusion or args.embed_method == "graphsage":  # whether feature is needed
         feature = np.load(feature_path)
 
@@ -208,8 +209,6 @@ def main():
     elif args.embed_method == 'ft':
         prefix = '/yushi/repo/GraphZoom/dgl_gcn'
         embeddings = np.load(f'{prefix}/{args.dataset}_emb_level_1.npy')
-        import pdb
-        pdb.set_trace()
 
     embed_time = time.process_time() - embed_start
 
