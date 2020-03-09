@@ -1,7 +1,5 @@
 graphzoom/embed_results/*
-graphzoom/dataset
 __pycache__
 .ipynb_checkpoints/
-graphzoom/reduction_results/*
 graphzoom/output/
 .vscode/
