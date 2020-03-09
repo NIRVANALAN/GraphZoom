@@ -1,33 +1,56 @@
 import json
+from pathlib import Path
 import networkx as nx
 import numpy as np
 from networkx.readwrite import json_graph
 from networkx.linalg.laplacianmatrix import laplacian_matrix
-from scipy.io import mmwrite
+from scipy.io import mmwrite, mmread
 from scipy.sparse import csr_matrix
 from pathlib import Path
 
-from .graphsage_utils import load_gsage_data
+from graphsage_utils import load_gsage_data
 
 
-def load_dataset(dataset, prefix):
+def normalize_features(G, feats):
+    from sklearn.preprocessing import StandardScaler
+    train_ids = np.array([n for n in G.nodes(
+    ) if not G.node[n]['val'] and not G.node[n]['test']])
+    train_feats = feats[train_ids]
+    scaler = StandardScaler()
+    scaler.fit(train_feats)
+    feats = scaler.transform(feats)
+    return feats
+
+
+def load_dataset(dataset, prefix, normalize_features=True):
+    mtx_path = Path("dataset/{}/{}.mtx".format(dataset, dataset))
     prefix = Path(prefix, 'dataset', dataset, f'{dataset}')
-    if dataset in ['citeseer', 'cora', 'pubmed', ]:
-        dataset_path = prefix+'-G.json'
-        G_data = json.load(
-            open(dataset_path))
-        G = json_graph.node_link_graph(G_data)
-        feature = np.load(prefix='-feats.npy')
-    elif dataset in ['Amazon2M', 'reddit', 'ppi', 'Amazon2M']:
-        G, feats, class_map = load_gsage_data()
+    if mtx_path.exists():
+        laplacian = mmread(str(mtx_path))
         pass
     else:
-        raise ValueError('dataset not known')
-    laplacian = laplacian_matrix(G)
-    file = open("dataset/{}/{}.mtx".format(dataset, dataset), "wb")
-    mmwrite("dataset/{}/{}.mtx".format(dataset, dataset), laplacian)
-    file.close()
-
+        if dataset in ['citeseer', 'cora', 'pubmed', ]:
+            dataset_path = str(prefix) + '-G.json'
+            G_data = json.load(
+                open(dataset_path))
+            G = json_graph.node_link_graph(G_data)
+        elif dataset in ['Amazon2M', 'reddit', 'ppi', 'Amazon2M']:
+            G, class_map = load_gsage_data()
+            pass
+        else:
+            raise ValueError('dataset not known')
+        laplacian = laplacian_matrix(G)
+        file = open(mtx_path, "wb")
+        mmwrite(mtx_path, laplacian)
+        file.close()
+        if normalize_features:
+            feats = np.load(str(prefix)+'-feats.npy')
+            feats = normalize_features(G, feats)
+            np.save(str(prefix)+'-norm_feats.npy')
+    if normalize_features:
+        feats = np.load(str(prefix)+'-norm_feats.npy')
+    else:
+        feats = np.load(str(prefix)+'-feats.npy')
     return laplacian, feats
 
 

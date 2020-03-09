@@ -25,11 +25,11 @@ def load_gsage_data(prefix, normalize=True, load_walks=False):
     else:
         def conversion(n): return n
 
-    if os.path.exists(prefix + "-feats.npy"):
-        feats = np.load(prefix + "-feats.npy")
-    else:
-        print("No features present.. Only identity features will be used.")
-        feats = None
+    # if os.path.exists(prefix + "-feats.npy"):
+    #     feats = np.load(prefix + "-feats.npy")
+    # else:
+    #     print("No features present.. Only identity features will be used.")
+    #     feats = None
     class_map = json.load(open(prefix + "-class_map.json"))
     if isinstance(list(class_map.values())[0], list):
         def lab_conversion(n): return n
@@ -59,14 +59,6 @@ def load_gsage_data(prefix, normalize=True, load_walks=False):
         else:
             G[edge[0]][edge[1]]['train_removed'] = False
 
-    if normalize and not feats is None:
-        from sklearn.preprocessing import StandardScaler
-        train_ids = np.array([n for n in G.nodes(
-        ) if not G.node[n]['val'] and not G.node[n]['test']])
-        train_feats = feats[train_ids]
-        scaler = StandardScaler()
-        scaler.fit(train_feats)
-        feats = scaler.transform(feats)
 
     return G, feats, class_map
 
