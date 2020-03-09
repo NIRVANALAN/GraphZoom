@@ -156,7 +156,7 @@ def main():
     args = parser.parse_args()
 
     dataset = args.dataset
-    feature_path = "dataset/{}/{}-feats.npy".format(dataset, dataset)
+    feature_path = "{}/dataset/{}/{}-feats.npy".format(args.prefix, dataset, dataset)
     fusion_input_path = "dataset/{}/{}.mtx".format(dataset, dataset)
     reduce_results = "reduction_results/"
     mapping_path = "{}Mapping.mtx".format(reduce_results)
