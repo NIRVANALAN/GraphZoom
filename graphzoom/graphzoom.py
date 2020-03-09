@@ -156,7 +156,7 @@ def main():
     args = parser.parse_args()
 
     dataset = args.dataset
-    feature_path = "{}/dataset/{}/{}-feats.npy".format(args.prefix, dataset, dataset)
+    # feature_path = "{}/dataset/{}/{}-feats.npy".format(args.prefix, dataset, dataset)
     fusion_input_path = "dataset/{}/{}.mtx".format(dataset, dataset)
     reduce_results = "reduction_results/"
     mapping_path = "{}Mapping.mtx".format(reduce_results)
@@ -168,9 +168,9 @@ def main():
 
 ######Load Data######
     print("%%%%%% Loading Graph Data %%%%%%")
-    laplacian = load_dataset(dataset, args.prefix)
-    if args.fusion or args.embed_method == "graphsage":  # whether feature is needed
-        feature = np.load(feature_path)
+    laplacian, feature = load_dataset(dataset, args.prefix)
+    # if args.fusion or args.embed_method == "graphsage":  # whether feature is needed
+    #     feature = np.load(feature_path)
 
 ######Graph Fusion######
     if args.fusion:

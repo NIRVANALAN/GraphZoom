@@ -1,19 +1,25 @@
 import json
 import networkx as nx
+import numpy as np
 from networkx.readwrite import json_graph
 from networkx.linalg.laplacianmatrix import laplacian_matrix
 from scipy.io import mmwrite
 from scipy.sparse import csr_matrix
 from pathlib import Path
 
+from .graphsage_utils import load_gsage_data
+
 
 def load_dataset(dataset, prefix):
-    if dataset in ['citeseer', 'cora', 'pubmed', 'reddit', 'ppi']:
-        dataset_path = Path(prefix, 'dataset', dataset, f'{dataset}-G.json')
+    prefix = Path(prefix, 'dataset', dataset, f'{dataset}')
+    if dataset in ['citeseer', 'cora', 'pubmed', ]:
+        dataset_path = prefix+'-G.json'
         G_data = json.load(
             open(dataset_path))
         G = json_graph.node_link_graph(G_data)
-    elif dataset in ['amazon2m']:
+        feature = np.load(prefix='-feats.npy')
+    elif dataset in ['Amazon2M', 'reddit', 'ppi', 'Amazon2M']:
+        G, feats, class_map = load_gsage_data()
         pass
     else:
         raise ValueError('dataset not known')
@@ -22,7 +28,7 @@ def load_dataset(dataset, prefix):
     mmwrite("dataset/{}/{}.mtx".format(dataset, dataset), laplacian)
     file.close()
 
-    return laplacian
+    return laplacian, feats
 
 
 def json2mtx(dataset):
