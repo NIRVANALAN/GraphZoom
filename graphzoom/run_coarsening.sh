@@ -6,6 +6,7 @@
 #
 exe_name=$0
 exe_dir=`dirname "$0"`
+echo ${exe_name}
 echo "------------------------------------------"
 if [ "x$1" = "x" ]; then
   echo Usage:

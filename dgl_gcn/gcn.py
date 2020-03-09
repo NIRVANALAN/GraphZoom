@@ -17,7 +17,7 @@ class GCN(nn.Module):
                  n_classes,
                  n_layers,
                  activation,
-                 dropout):
+                 dropout, softmax=False):
         super(GCN, self).__init__()
         self.g = g
         self.layers = nn.ModuleList()
@@ -29,6 +29,7 @@ class GCN(nn.Module):
         # output layer
         self.layers.append(GraphConv(n_hidden, n_classes))
         self.dropout = nn.Dropout(p=dropout)
+        self.softmax = softmax
 
     def forward(self, features):
         h = features
@@ -36,4 +37,6 @@ class GCN(nn.Module):
             if i != 0:
                 h = self.dropout(h)
             h = layer(self.g, h)
+        if self.softmax:
+            return nn.functional.softmax(h, 1)
         return h
