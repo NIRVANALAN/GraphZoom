@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 import networkx as nx
 from pathlib import Path
@@ -46,11 +47,16 @@ def load_dataset(dataset, prefix='',):
                 open(dataset_path))
             G = json_graph.node_link_graph(G_data)
         elif dataset in ['Amazon2M', 'reddit', 'ppi']:
+            start = time.time()
             G = read_gpickle(
                 str(Path(prefix, 'dataset', dataset, f'{dataset}.gpickle')))
+            print(f'gpickle load finish: {time.time() - start}')
         else:
             raise ValueError('dataset not known')
+        print('calculating laplacian')
+        start = time.time()
         laplacian = laplacian_matrix(G)
+        print(f'calculating finished: {time.time() - start}')
         file = open(mtx_path, "wb")
         mmwrite(str(mtx_path), laplacian)
         file.close()
