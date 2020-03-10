@@ -4,7 +4,7 @@ import networkx as nx
 from pathlib import Path
 import numpy as np
 import networkx as nx
-from networkx.readwrite import json_graph
+from networkx.readwrite import json_graph, read_gpickle
 from networkx.linalg.laplacianmatrix import laplacian_matrix
 from scipy.io import mmwrite, mmread
 from scipy.sparse import csr_matrix
@@ -29,6 +29,10 @@ def load_dgl_graph(name, normalize=False, self_loop=False):
     pass
 
 
+def load_nx_graph(dataset, prefix):
+    pass
+
+
 def load_dataset(dataset, prefix='',):
     mtx_path = Path("dataset/{}/{}.mtx".format(dataset, dataset))
     feats_path = Path(prefix, 'dataset', dataset, f'{dataset}-feats.npy')
@@ -42,7 +46,8 @@ def load_dataset(dataset, prefix='',):
                 open(dataset_path))
             G = json_graph.node_link_graph(G_data)
         elif dataset in ['Amazon2M', 'reddit', 'ppi']:
-            G, _ = load_dgl_graph(dataset)
+            G = read_gpickle(
+                str(Path(prefix, 'dataset', dataset, f'{dataset}.gpickle')))
         else:
             raise ValueError('dataset not known')
     laplacian = laplacian_matrix(G)
