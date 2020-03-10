@@ -39,6 +39,7 @@ def load_dataset(dataset, prefix='',):
     feats_path = Path(prefix, 'dataset', dataset, f'{dataset}-feats.npy')
     feats = np.load(str(feats_path))
     if mtx_path.exists():
+        print('load previous mtxfile')
         laplacian = mmread(str(mtx_path))
     else:
         if dataset in ['citeseer', 'cora', 'pubmed', ]:
