@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path, posixpath
 import networkx as nx
 import os
 from scipy.sparse import csr_matrix, triu, tril, diags, identity
@@ -175,10 +176,16 @@ def main():
 ######Graph Fusion######
     if args.fusion:
         print("%%%%%% Starting Graph Fusion %%%%%%")
-        fusion_start = time.process_time()
-        laplacian = graph_fusion(laplacian, feature, args.num_neighs, args.mcr_dir,
-                                 fusion_input_path, args.search_ratio, reduce_results, mapping_path, dataset)
-        fusion_time = time.process_time() - fusion_start
+        fusion_path = Path("dataset/{}/fused_{}.mtx".format(dataset, dataset))
+        if fusion_path.exists():
+            laplacian = mmread(str(fusion_path))
+            print('load previous fusion laplacian')
+        else:
+            print('start fusion calculation')
+            fusion_start = time.process_time()
+            laplacian = graph_fusion(laplacian, feature, args.num_neighs, args.mcr_dir,
+                                     fusion_input_path, args.search_ratio, reduce_results, mapping_path, dataset)
+            fusion_time = time.process_time() - fusion_start
 
 ######Graph Reduction######
     print("%%%%%% Starting Graph Reduction %%%%%%")
