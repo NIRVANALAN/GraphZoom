@@ -239,7 +239,10 @@ def main():
 
 
 ######Evaluation######
-    lr("dataset/{}/".format(dataset), embed_path, dataset)
+    if args.prefix != '':
+        lr("{}/dataset/{}/".format(args.prefix, dataset), embed_path, dataset)
+    else:
+        lr("dataset/{}/".format(dataset), embed_path, dataset)
 
 ######Report timing information######
     print("%%%%%% Single CPU time %%%%%%")
