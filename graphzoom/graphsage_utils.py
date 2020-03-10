@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from pathlib import Path
 import numpy as np
 import random
 import json
@@ -17,19 +18,15 @@ WALK_LEN = 5
 N_WALKS = 50
 
 
-def load_gsage_data(prefix, normalize=True, load_walks=False):
+def load_gsage_graph(prefix, normalize=True, load_walks=False):
     G_data = json.load(open(prefix + "-G.json"))
     G = json_graph.node_link_graph(G_data)
     if isinstance(G.nodes()[0], int):
         def conversion(n): return int(n)
     else:
         def conversion(n): return n
-
-    # if os.path.exists(prefix + "-feats.npy"):
-    #     feats = np.load(prefix + "-feats.npy")
-    # else:
-    #     print("No features present.. Only identity features will be used.")
-    #     feats = None
+    id_map = json.load(open(prefix + "-id_map.json"))
+    id_map = {conversion(k): int(v) for k, v in id_map.items()}
     class_map = json.load(open(prefix + "-class_map.json"))
     if isinstance(list(class_map.values())[0], list):
         def lab_conversion(n): return n
@@ -41,13 +38,14 @@ def load_gsage_data(prefix, normalize=True, load_walks=False):
 
     # Remove all nodes that do not have val/test annotations
     # (necessary because of networkx weirdness with the Reddit data)
-    broken_count = 0
+    broken_nodes = []
     for node in G.nodes():
         if not 'val' in G.node[node] or not 'test' in G.node[node]:
-            G.remove_node(node)
-            broken_count += 1
+            broken_nodes.append(node)
+    for node in broken_nodes:
+        G.remove_node(node)
     print("Removed {:d} nodes that lacked proper annotations due to networkx versioning issues".format(
-        broken_count))
+        len(broken_nodes)))
 
     # Make sure the graph has edge train_removed annotations
     # (some datasets might already have this..)
@@ -59,7 +57,24 @@ def load_gsage_data(prefix, normalize=True, load_walks=False):
         else:
             G[edge[0]][edge[1]]['train_removed'] = False
 
-
+    if normalize:
+        norm_feats_path = Path(str(prefix)+'-norm-feats.npy')
+        if not norm_feats_path.exists():
+            feats = np.load(str(prefix)+'-feats.npy')
+            from sklearn.preprocessing import StandardScaler
+            train_ids = np.array([id_map[n] for n in G.nodes(
+            ) if not G.node[n]['val'] and not G.node[n]['test']])
+            train_feats = feats[train_ids]
+            scaler = StandardScaler()
+            scaler.fit(train_feats)
+            feats = scaler.transform(feats)
+            np.save(str(prefix)+'-norm-feats.npy', feats)
+        else:
+            feats = np.load(str(prefix)+'-norm-feats.npy')
+    else:
+        feats = np.load(str(prefix)+'-feats.npy')
+    import pdb
+    pdb.set_trace()
     return G, feats, class_map
 
 

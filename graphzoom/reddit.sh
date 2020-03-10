@@ -7,5 +7,7 @@ for i in `seq 1 4`    ## coarsening level
             (3)  echo 9;;
             (4)  echo 19;;
         esac)
-        python graphzoom.py -r ${ratio} -m deepwalk
+        # python graphzoom.py -r ${ratio} -m deepwalk
+        # python graphzoom.py -r ${ratio} -m deepwalk -pre /yushi/ -d reddit
+        python graphzoom.py -r ${ratio} -m deepwalk -pre /mnt/yushi/ -d reddit
 done

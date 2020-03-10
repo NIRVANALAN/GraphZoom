@@ -1,56 +1,54 @@
 import json
 from pathlib import Path
 import networkx as nx
+from pathlib import Path
 import numpy as np
+import networkx as nx
 from networkx.readwrite import json_graph
 from networkx.linalg.laplacianmatrix import laplacian_matrix
 from scipy.io import mmwrite, mmread
 from scipy.sparse import csr_matrix
-from pathlib import Path
+import sklearn
 
-from graphsage_utils import load_gsage_data
-
-
-def normalize_features(G, feats):
-    from sklearn.preprocessing import StandardScaler
-    train_ids = np.array([n for n in G.nodes(
-    ) if not G.node[n]['val'] and not G.node[n]['test']])
-    train_feats = feats[train_ids]
-    scaler = StandardScaler()
-    scaler.fit(train_feats)
-    feats = scaler.transform(feats)
-    return feats
+from dgl.data import RedditDataset
 
 
-def load_dataset(dataset, prefix, normalize_features=True):
+def load_dgl_graph(name, normalize=False, self_loop=False):
+    if name == 'reddit':
+        data = RedditDataset(self_loop=self_loop)
+        if normalize:
+            train_nid = np.nonzero(data.train_mask)[0].astype(np.int64)
+            train_feats = data.features[train_nid]
+            scaler = sklearn.preprocessing.StandardScaler()
+            scaler.fit(train_feats)
+            features = scaler.transform(data.features)
+        else:
+            features = data.features
+        print('transforming DGLGraph to NXGraph...')
+        return data.graph.to_networkx().to_undirected(), features
+    pass
+
+
+def load_dataset(dataset, prefix='',):
     mtx_path = Path("dataset/{}/{}.mtx".format(dataset, dataset))
-    prefix = Path(prefix, 'dataset', dataset, f'{dataset}')
+    feats_path = Path(prefix, 'dataset', dataset, f'{dataset}-feats.npy')
+    feats = np.load(str(feats_path))
     if mtx_path.exists():
         laplacian = mmread(str(mtx_path))
-        pass
     else:
         if dataset in ['citeseer', 'cora', 'pubmed', ]:
             dataset_path = str(prefix) + '-G.json'
             G_data = json.load(
                 open(dataset_path))
             G = json_graph.node_link_graph(G_data)
-        elif dataset in ['Amazon2M', 'reddit', 'ppi', 'Amazon2M']:
-            G, class_map = load_gsage_data()
-            pass
+        elif dataset in ['Amazon2M', 'reddit', 'ppi']:
+            G, _ = load_dgl_graph(dataset)
         else:
             raise ValueError('dataset not known')
-        laplacian = laplacian_matrix(G)
-        file = open(mtx_path, "wb")
-        mmwrite(mtx_path, laplacian)
-        file.close()
-        if normalize_features:
-            feats = np.load(str(prefix)+'-feats.npy')
-            feats = normalize_features(G, feats)
-            np.save(str(prefix)+'-norm_feats.npy')
-    if normalize_features:
-        feats = np.load(str(prefix)+'-norm_feats.npy')
-    else:
-        feats = np.load(str(prefix)+'-feats.npy')
+    laplacian = laplacian_matrix(G)
+    file = open(mtx_path, "wb")
+    mmwrite(str(mtx_path), laplacian)
+    file.close()
     return laplacian, feats
 
 
