@@ -50,10 +50,10 @@ def load_dataset(dataset, prefix='',):
                 str(Path(prefix, 'dataset', dataset, f'{dataset}.gpickle')))
         else:
             raise ValueError('dataset not known')
-    laplacian = laplacian_matrix(G)
-    file = open(mtx_path, "wb")
-    mmwrite(str(mtx_path), laplacian)
-    file.close()
+        laplacian = laplacian_matrix(G)
+        file = open(mtx_path, "wb")
+        mmwrite(str(mtx_path), laplacian)
+        file.close()
     return laplacian, feats
 
 
