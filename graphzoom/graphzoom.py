@@ -186,6 +186,7 @@ def main():
             laplacian = graph_fusion(laplacian, feature, args.num_neighs, args.mcr_dir,
                                      fusion_input_path, args.search_ratio, reduce_results, mapping_path, dataset)
             fusion_time = time.process_time() - fusion_start
+            print("Graph Fusion     Time: {}".format(fusion_time))
 
 ######Graph Reduction######
     print("%%%%%% Starting Graph Reduction %%%%%%")
