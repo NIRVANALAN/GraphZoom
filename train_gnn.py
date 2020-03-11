@@ -11,8 +11,19 @@ from dgl import DGLGraph
 from dgl.data import register_data_args, load_data, citegrh
 
 from dgl_gcn.gcn import GCN
+from dgl_gcn.gat import GAT
 from dgl_gcn.utils import _sample_mask, load_data
 from graphzoom.utils import mtx2graph, construct_proj_laplacian
+
+FACTORY = {
+    'gcn': GCN,
+    'gat': GAT, }
+
+
+def create_model(name, g, **kwargs):
+    if name not in FACTORY:
+        raise NotImplementedError(f'{name} not in arch FACTORY')
+    return FACTORY[name](g, **kwargs)
 
 
 def evaluate(model, features, labels, mask):
@@ -150,14 +161,26 @@ def main(args):
         norm = norm.cuda()
     g.ndata['norm'] = norm.unsqueeze(1)
 
-    # create GCN model
-    model = GCN(g,
-                in_feats,
-                args.n_hidden,
-                n_classes,
-                args.n_layers,
-                F.relu,
-                args.dropout, log_softmax=data.coarse)
+    # * create GCN model
+    heads = ([args.num_heads] * args.num_layers) + [args.num_out_heads]
+    model = create_model(args.arch, g,
+                         num_layers=args.num_layers,
+                         in_dim=in_feats,
+                         num_hidden=args.num_hidden,
+                         num_classes=n_classes,
+                         heads=heads,
+                         activation=F.elu,
+                         feat_drop=args.in_drop,
+                         attn_drop=args.attn_drop,
+                         negative_slope=args.negative_slope,
+                         residual=args.residual, log_softmax=data.coarse)
+    # model = GCN(g,
+    #             in_feats,
+    #             args.n_hidden,
+    #             n_classes,
+    #             args.n_layers,
+    #             F.relu,
+    #             args.dropout, log_softmax=data.coarse)
 
     if cuda:
         model.cuda()
@@ -218,6 +241,30 @@ if __name__ == '__main__':
     parser.add_argument("--self-loop", action='store_true',
                         help="graph self-loop (default=False)")
     parser.set_defaults(self_loop=False)
+    # * attention
+    parser.add_argument("--num-heads", type=int, default=8,
+                        help="number of hidden attention heads")
+    parser.add_argument("--num-out-heads", type=int, default=1,
+                        help="number of output attention heads")
+    parser.add_argument("--num-layers", type=int, default=1,
+                        help="number of hidden layers")
+    parser.add_argument("--num-hidden", type=int, default=8,
+                        help="number of hidden units")
+    parser.add_argument("--residual", action="store_true", default=False,
+                        help="use residual connection")
+    parser.add_argument("--in-drop", type=float, default=.6,
+                        help="input feature dropout")
+    parser.add_argument("--attn-drop", type=float, default=.6,
+                        help="attention dropout")
+    parser.add_argument('--negative-slope', type=float, default=0.2,
+                        help="the negative slope of leaky relu")
+    parser.add_argument('--early-stop', action='store_true', default=False,
+                        help="indicates whether to use early stop or not")
+    parser.add_argument('--fastmode', action="store_true", default=False,
+                        help="skip re-evaluate the validation set")
+    # * MODEL
+    parser.add_argument("--arch", type=str, default='gcn',
+                        help='arch of gcn model, default: gcn')
     args = parser.parse_args()
     print(args)
 
