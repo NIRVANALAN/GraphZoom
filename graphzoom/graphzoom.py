@@ -175,6 +175,7 @@ def main():
 
 ######Graph Fusion######
     if args.fusion:
+        fusion_time = 0
         print("%%%%%% Starting Graph Fusion %%%%%%")
         fusion_path = Path("dataset/{}/fused_{}.mtx".format(dataset, dataset))
         if fusion_path.exists():
