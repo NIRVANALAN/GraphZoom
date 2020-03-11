@@ -8,6 +8,8 @@ for i in `seq 1`    ## coarsening level
             #(4)  echo 25;;
             #(5)  echo 50;;
         esac)
-        # python graphzoom.py -m pt -d citeseer -r ${ratio} -n 10 
-        python graphzoom.py -m deepwalk -d citeseer -r ${ratio} -n 10 -f
+        # python graphzoom.py -m ft -d citeseer -r ${ratio} -n 10 
+        # python graphzoom.py -m ft -d citeseer -r ${ratio} -n 10 -emb_arch GAT
+        python graphzoom.py -m ft -d citeseer -r ${ratio} -n 10 -emb_arch GAT
+        #python graphzoom.py -m deepwalk -d citeseer -r ${ratio} -n 10 -f
 done

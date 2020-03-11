@@ -148,9 +148,10 @@ def main(args):
     # graph preprocess and calculate normalization factor
     g = data.graph
     # add self loop
-    if args.self_loop:
+    if args.self_loop or args.arch == 'gat':
         g.remove_edges_from(nx.selfloop_edges(g))
         g.add_edges_from(zip(g.nodes(), g.nodes()))
+        print('add self_loop')
     g = DGLGraph(g)
     n_edges = g.number_of_edges()
     # normalization
@@ -174,16 +175,10 @@ def main(args):
                          attn_drop=args.attn_drop,
                          negative_slope=args.negative_slope,
                          residual=args.residual, log_softmax=data.coarse)
-    # model = GCN(g,
-    #             in_feats,
-    #             args.n_hidden,
-    #             n_classes,
-    #             args.n_layers,
-    #             F.relu,
-    #             args.dropout, log_softmax=data.coarse)
 
     if cuda:
         model.cuda()
+    print(model)
     # loss_fcn = torch.nn.CrossEntropyLoss()
 
     # use optimizer
@@ -248,7 +243,7 @@ if __name__ == '__main__':
                         help="number of output attention heads")
     parser.add_argument("--num-layers", type=int, default=1,
                         help="number of hidden layers")
-    parser.add_argument("--num-hidden", type=int, default=8,
+    parser.add_argument("--num-hidden", type=int, default=16,
                         help="number of hidden units")
     parser.add_argument("--residual", action="store_true", default=False,
                         help="use residual connection")
