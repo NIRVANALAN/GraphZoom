@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 from dgl.nn.pytorch import GraphConv
 
+
 class GCN(nn.Module):
     def __init__(self,
                  g,
@@ -17,26 +18,32 @@ class GCN(nn.Module):
                  n_classes,
                  n_layers,
                  activation,
-                 dropout, softmax=False):
+                 dropout, log_softmax=False):
         super(GCN, self).__init__()
         self.g = g
         self.layers = nn.ModuleList()
         # input layer
-        self.layers.append(GraphConv(in_feats, n_hidden, activation=activation))
+        self.layers.append(
+            GraphConv(in_feats, n_hidden, activation=activation))
         # hidden layers
         for i in range(n_layers - 1):
-            self.layers.append(GraphConv(n_hidden, n_hidden, activation=activation))
+            self.layers.append(
+                GraphConv(n_hidden, n_hidden, activation=activation))
         # output layer
         self.layers.append(GraphConv(n_hidden, n_classes))
         self.dropout = nn.Dropout(p=dropout)
-        self.softmax = softmax
+        self.log_softmax = log_softmax
 
     def forward(self, features):
         h = features
         for i, layer in enumerate(self.layers):
             if i != 0:
                 h = self.dropout(h)
+            emb = h
             h = layer(self.g, h)
-        if self.softmax:
-            return nn.functional.softmax(h, 1)
-        return h
+        if self.log_softmax:
+            return nn.functional.log_softmax(h, 1), emb
+        return h, emb
+
+    def __repr__(self):
+        return f'GCN'
