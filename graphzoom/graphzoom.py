@@ -239,6 +239,7 @@ def main():
 
 ######Save Embeddings######
     embed_path = f'{args.embed_path}/{args.dataset}_level_{levels}.npy'
+    print(f'embed_path: {embed_path}')
     np.save(embed_path, embeddings)
 
 

@@ -25,7 +25,7 @@ class GAT(nn.Module):
                  feat_drop,
                  attn_drop,
                  negative_slope,
-                 residual, log_softmax):
+                 residual, log_softmax=False):
         super(GAT, self).__init__()
         self.g = g
         self.num_layers = num_layers
@@ -58,5 +58,5 @@ class GAT(nn.Module):
         return logits, h
 
     def __repr__(self):
-        return 'GAT'
-        # return super().__repr__()
+        # return 'GAT'
+        return super().__repr__()

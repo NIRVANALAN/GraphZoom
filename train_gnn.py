@@ -1,4 +1,5 @@
 import argparse
+from networkx.readwrite import json_graph, read_gpickle
 import time
 from easydict import EasyDict
 import numpy as np
@@ -8,7 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.functional import softmax
 from dgl import DGLGraph
-from dgl.data import register_data_args, load_data, citegrh
+from dgl.data import register_data_args, load_data as load_dgl_data, citegrh, load_graphs
+from dgl.transform import add_self_loop
 
 from dgl_gcn.gcn import GCN
 from dgl_gcn.gat import GAT
@@ -29,7 +31,7 @@ def create_model(name, g, **kwargs):
 def evaluate(model, features, labels, mask):
     model.eval()
     with torch.no_grad():
-        logits = model(features)
+        logits, _ = model(features)
         logits = logits[mask]
         labels = labels[mask]
         _, indices = torch.max(logits, dim=1)
@@ -39,72 +41,109 @@ def evaluate(model, features, labels, mask):
 
 def main(args):
     # load and preprocess dataset
+    data = load_dgl_data(args)
     dataset = args.dataset
-    dataset_dir = f'graphzoom/dataset/{dataset}'
+    # prefix = '/mnt/yushi/'
+    prefix = 'graphzoom'
+    dataset_dir = f'{prefix}/dataset/{dataset}'
     # data = load_data(dataset_dir, args.dataset)
 
-    G, labels, train_ids, test_ids, train_labels, test_labels, feats = load_data(
-        dataset_dir, args.dataset)
-    val_ids = test_ids[1000:1500]
-    test_ids = test_ids[:1000]
-    labels = torch.LongTensor(labels)
-    train_mask = _sample_mask(train_ids, labels.shape[0])
-    test_mask = _sample_mask(test_ids, labels.shape[0])
-    val_mask = _sample_mask(val_ids, labels.shape[0])
-    # val_mask = _sample_mask(range(200, 500), labels.shape[0])
-    onehot_labels = F.one_hot(labels)
-    print(len(train_labels))
-    print(len(test_ids))
-    print(len(val_ids))
+    load_data_time = time.time()
+    if dataset == 'Amazon2M':
+        g, graph_labels = load_graphs(
+            '/mnt/yushi/dataset/Amazon2M/Amazon2M_dglgraph.bin')
+        assert len(g) == 1
+        g = g[0]
+        data = g.ndata
+        features = torch.FloatTensor(data['feat'])
+        # labels = torch.LongTensor(data['label'])
+        onehot_labels = F.one_hot(data['label'])
+        train_mask = data['train_mask'].bool()
+        val_mask = data['val_mask'].bool()
+        test_mask = data['test_mask'].bool()
+        G = read_gpickle(
+            dataset_dir + f'/{dataset}.gpickle')
+        data = EasyDict({
+            'graph': G,
+            'labels': data['label'],
+            'onehot_labels': onehot_labels,
+            # 'features': feats,
+            'features': data['feat'],
+            'train_mask': train_mask,
+            'val_mask': val_mask,
+            'test_mask': test_mask,
+            'num_labels': onehot_labels.shape[1],
+            'coarse': False
 
-    data = EasyDict({
-        'graph': G,
-        'labels': labels,
-        'onehot_labels': onehot_labels,
-        'features': feats,
-        'train_mask': train_mask,
-        'val_mask': val_mask,
-        'test_mask': test_mask,
-        'num_labels': onehot_labels.shape[1],
-        'coarse': False
+        })
+    else:
+        G, labels, train_ids, test_ids, train_labels, test_labels, feats = load_data(
+            dataset_dir, args.dataset)
+        val_ids = test_ids[1000:1500]
+        test_ids = test_ids[:1000]
+        labels = torch.LongTensor(labels)
+        train_mask = _sample_mask(train_ids, labels.shape[0])
+        test_mask = _sample_mask(test_ids, labels.shape[0])
+        val_mask = _sample_mask(val_ids, labels.shape[0])
+        # val_mask = _sample_mask(range(200, 500), labels.shape[0])
+        onehot_labels = F.one_hot(labels)
+        print(len(train_labels))
+        print(len(test_ids))
+        print(len(val_ids))
 
-    })
+        data = EasyDict({
+            'graph': G,
+            'labels': labels,
+            'onehot_labels': onehot_labels,
+            # 'features': feats,
+            'features': data.features,
+            'train_mask': train_mask,
+            'val_mask': val_mask,
+            'test_mask': test_mask,
+            'num_labels': onehot_labels.shape[1],
+            'coarse': False
 
-    # * load projection matrix
-    levels = 2
-    reduce_results = f"graphzoom/reduction_results/{dataset}"
-    original_adj = nx.adj_matrix(G)
-    projections, coarse_adj = construct_proj_laplacian(
-        original_adj, levels, reduce_results)
-    # *calculate coarse feature, labels
-    coarse_feats = projections[0] @ data.features
-    coarse_labels = projections[0] @ data.onehot_labels
-    coarse_graph = nx.Graph(coarse_adj[1])
-    rows_sum = coarse_labels.sum(axis=1)[:, np.newaxis]
-    norm_coarse_labels = coarse_labels / rows_sum
-    # list(map(np.shape, [coarse_embed, coarse_labels]))
-    # * new train/test masks
-    coarse_train_mask = _sample_mask(range(100), norm_coarse_labels.shape[0])
-    coarse_test_mask = _sample_mask(
-        range(100, 700), norm_coarse_labels.shape[0])
-    coarse_val_mask = _sample_mask(
-        range(700, 1000), norm_coarse_labels.shape[0])
+        })
+        g = data.graph
+        g = DGLGraph(g)
+    print(f'load data finished: {time.time() - load_data_time}')
+    if args.coarse:
+        # * load projection matrix
+        levels = 2
+        reduce_results = f"graphzoom/reduction_results/{dataset}"
+        original_adj = nx.adj_matrix(G)
+        projections, coarse_adj = construct_proj_laplacian(
+            original_adj, levels, reduce_results)
+        # *calculate coarse feature, labels
+        coarse_feats = projections[0] @ data.features
+        coarse_labels = projections[0] @ data.onehot_labels
+        coarse_graph = nx.Graph(coarse_adj[1])
+        rows_sum = coarse_labels.sum(axis=1)[:, np.newaxis]
+        norm_coarse_labels = coarse_labels / rows_sum
+        # list(map(np.shape, [coarse_embed, coarse_labels]))
+        # * new train/test masks
+        coarse_train_mask = _sample_mask(
+            range(100), norm_coarse_labels.shape[0])
+        coarse_test_mask = _sample_mask(
+            range(100, 700), norm_coarse_labels.shape[0])
+        coarse_val_mask = _sample_mask(
+            range(700, 1000), norm_coarse_labels.shape[0])
 
-    # *replace data
-    coarse_data = EasyDict({
-        'graph': coarse_graph,
-        'labels': coarse_labels,
-        #     'onehot_labels': onehot_labels,
-        'features': coarse_feats,
-        'train_mask': coarse_train_mask,
-        'val_mask': coarse_val_mask,
-        'test_mask': coarse_test_mask,
-        'num_classes': norm_coarse_labels.shape[1],
-        'num_labels': onehot_labels.shape[1],
-        'coarse': True
-    })
-    data = coarse_data
-    if data.coarse:
+        # *replace data
+        coarse_data = EasyDict({
+            'graph': coarse_graph,
+            'labels': coarse_labels,
+            #     'onehot_labels': onehot_labels,
+            'features': coarse_feats,
+            'train_mask': coarse_train_mask,
+            'val_mask': coarse_val_mask,
+            'test_mask': coarse_test_mask,
+            'num_classes': norm_coarse_labels.shape[1],
+            'num_labels': onehot_labels.shape[1],
+            'coarse': True
+        })
+        data = coarse_data
+    if args.coarse:
         labels = torch.FloatTensor(data.labels)
         loss_fcn = torch.nn.KLDivLoss()
         print('training coarse')
@@ -122,17 +161,6 @@ def main(args):
         test_mask = torch.ByteTensor(data.test_mask)
     in_feats = features.shape[1]
     n_classes = data.num_labels
-    n_edges = data.graph.number_of_edges()
-    print("""----Data statistics------'
-      #Edges %d
-      #Classes %d
-      #Train samples %d
-      #Val samples %d
-      #Test samples %d""" %
-          (n_edges, n_classes,
-              train_mask.int().sum().item(),
-              val_mask.int().sum().item(),
-              test_mask.int().sum().item()))
 
     if args.gpu < 0:
         cuda = False
@@ -146,14 +174,23 @@ def main(args):
         test_mask = test_mask.cuda()
 
     # graph preprocess and calculate normalization factor
-    g = data.graph
     # add self loop
     if args.self_loop or args.arch == 'gat':
-        g.remove_edges_from(nx.selfloop_edges(g))
-        g.add_edges_from(zip(g.nodes(), g.nodes()))
+        g = add_self_loop(g)
+        # g.remove_edges_from(nx.selfloop_edges(g))
+        # g.add_edges_from(zip(g.nodes(), g.nodes()))
         print('add self_loop')
-    g = DGLGraph(g)
     n_edges = g.number_of_edges()
+    print("""----Data statistics------'
+      #Edges %d
+      #Classes %d
+      #Train samples %d
+      #Val samples %d
+      #Test samples %d""" %
+          (n_edges, n_classes,
+              train_mask.int().sum().item(),
+              val_mask.int().sum().item(),
+              test_mask.int().sum().item()))
     # normalization
     degs = g.in_degrees().float()
     norm = torch.pow(degs, -0.5)
@@ -174,7 +211,7 @@ def main(args):
                          feat_drop=args.in_drop,
                          attn_drop=args.attn_drop,
                          negative_slope=args.negative_slope,
-                         residual=args.residual, log_softmax=data.coarse)
+                         residual=args.residual, log_softmax=args.coarse)
 
     if cuda:
         model.cuda()
@@ -189,6 +226,7 @@ def main(args):
     # initialize graph
     dur = []
     acc = 0
+    start = time.time()
     for epoch in range(args.n_epochs):
         model.train()
         if epoch >= 3:
@@ -208,10 +246,11 @@ def main(args):
         print("Epoch {:05d} | Time(s) {:.4f} | Loss {:.4f} | Accuracy {:.4f} | "
               "ETputs(KTEPS) {:.2f}". format(epoch, np.mean(dur), loss.item(),
                                              acc, n_edges / np.mean(dur) / 1000))
-
-    # acc = evaluate(model, features, labels, test_mask)
+    print(f'training time: {time.time() - start}')
+    if not args.coarse:
+        acc = evaluate(model, features, labels, test_mask)
     print(h.shape)
-    np.save(f'embeddings/{repr(model)}_{dataset}_emb_level_1',
+    np.save(f'embeddings/{(args.arch).upper()}_{dataset}_emb_level_1',
             h.detach().cpu().numpy())
     print("Test accuracy {:.2%}".format(acc))
 
@@ -260,6 +299,7 @@ if __name__ == '__main__':
     # * MODEL
     parser.add_argument("--arch", type=str, default='gcn',
                         help='arch of gcn model, default: gcn')
+    parser.add_argument("--coarse", action="store_true", default=False)
     args = parser.parse_args()
     print(args)
 

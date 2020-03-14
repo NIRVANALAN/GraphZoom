@@ -15,9 +15,11 @@ import time
 import torch
 import torch.nn.functional as F
 from dgl import DGLGraph
-from dgl.data import register_data_args, load_data
-from .gat import GAT
-from ..utils import EarlyStopping
+from dgl.data import register_data_args, load_data as load_dgl_data
+from dgl_gcn.gat import GAT
+from dgl_gcn.utils import EarlyStopping, _sample_mask, load_data as load_local_data
+from easydict import EasyDict
+from sklearn.preprocessing import StandardScaler
 
 
 def accuracy(logits, labels):
@@ -29,7 +31,7 @@ def accuracy(logits, labels):
 def evaluate(model, features, labels, mask):
     model.eval()
     with torch.no_grad():
-        logits = model(features)
+        logits, _ = model(features)
         logits = logits[mask]
         labels = labels[mask]
         return accuracy(logits, labels)
@@ -37,7 +39,57 @@ def evaluate(model, features, labels, mask):
 
 def main(args):
     # load and preprocess dataset
-    data = load_data(args)
+    data = load_dgl_data(args)
+    # import pdb
+    # pdb.set_trace()
+
+    dataset = args.dataset
+    dataset_dir = f'graphzoom/dataset/{dataset}'
+
+    G, labels, train_ids, test_ids, train_labels, test_labels, feats = load_local_data(
+        dataset_dir, args.dataset)
+    # import pdb
+    # pdb.set_trace()
+    # G = G.to_directed()  # ! use directed graph in DGL
+    # data.graph = G
+    # import pdb
+    # pdb.set_trace()
+    val_ids = test_ids[-500:]
+    test_ids = test_ids[:-500]
+    labels = torch.LongTensor(labels)
+    # train_feats = feats[train_ids]
+    # scaler = StandardScaler()
+    # scaler.fit(train_feats)
+    # feats = scaler.transform(feats)
+    train_mask = _sample_mask(train_ids, labels.shape[0])
+    test_mask = _sample_mask(test_ids, labels.shape[0])
+    val_mask = _sample_mask(val_ids, labels.shape[0])
+    # train_mask = data.train_mask
+    # test_mask = data.test_mask
+    # val_mask = data.val_mask
+    # val_mask = _sample_mask(range(200, 500), labels.shape[0])
+    onehot_labels = F.one_hot(labels)
+    # print(len(train_labels))
+    # print(len(test_ids))
+    # print(len(val_ids))
+    import pdb
+    pdb.set_trace()
+    print(data.features == feats)
+
+    data = EasyDict({
+        'graph': G,
+        'labels': labels,
+        'onehot_labels': onehot_labels,
+        # 'features': feats,
+        'features': data.features,
+        'train_mask': train_mask,
+        'val_mask': val_mask,
+        'test_mask': test_mask,
+        'num_labels': onehot_labels.shape[1],
+        'coarse': False
+
+    })
+
     features = torch.FloatTensor(data.features)
     labels = torch.LongTensor(data.labels)
     if hasattr(torch, 'BoolTensor'):
@@ -50,17 +102,6 @@ def main(args):
         test_mask = torch.ByteTensor(data.test_mask)
     num_feats = features.shape[1]
     n_classes = data.num_labels
-    n_edges = data.graph.number_of_edges()
-    print("""----Data statistics------'
-      #Edges %d
-      #Classes %d 
-      #Train samples %d
-      #Val samples %d
-      #Test samples %d""" %
-          (n_edges, n_classes,
-           train_mask.int().sum().item(),
-           val_mask.int().sum().item(),
-           test_mask.int().sum().item()))
 
     if args.gpu < 0:
         cuda = False
@@ -79,6 +120,18 @@ def main(args):
     g = DGLGraph(g)
     g.add_edges(g.nodes(), g.nodes())
     n_edges = g.number_of_edges()
+    #
+    n_edges = g.number_of_edges()
+    print("""----Data statistics------'
+      # Edges %d
+      # Classes %d
+      # Train samples %d
+      # Val samples %d
+      # Test samples %d""" %
+          (n_edges, n_classes,
+           train_mask.int().sum().item(),
+           val_mask.int().sum().item(),
+           test_mask.int().sum().item()))
     # create model
     heads = ([args.num_heads] * args.num_layers) + [args.num_out_heads]
     model = GAT(g,
@@ -110,7 +163,7 @@ def main(args):
         if epoch >= 3:
             t0 = time.time()
         # forward
-        logits = model(features)
+        logits, _ = model(features)
         loss = loss_fcn(logits[train_mask], labels[train_mask])
 
         optimizer.zero_grad()

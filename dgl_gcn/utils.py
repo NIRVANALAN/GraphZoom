@@ -36,7 +36,7 @@ def load_data(dataset_dir, dataset):
         test_ids = np.load(dataset_dir+f'/{dataset}_test_data.npy')
         labels = np.load(dataset_dir+f'/{dataset}_labels.npy')
         train_labels = labels[train_ids]
-        test_labels = labels[test_labels]
+        test_labels = labels[test_ids]
     return G, labels, train_ids, test_ids, train_labels, test_labels, feats
 
 
