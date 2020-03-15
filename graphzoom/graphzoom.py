@@ -258,7 +258,7 @@ def main():
         total_time = reduce_time + embed_time + refine_time
         print("Graph Fusion     Time: 0")
     print("Graph Reduction  Time: {}".format(reduce_time))
-    print("Graph Embedding  Time: {}".format(embed_time))
+    print("Graph Embedding  Time: {.3f} H".format(embed_time / 3600))
     print("Graph Refinement Time: {}".format(refine_time))
     print("Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = {}".format(total_time))
 
