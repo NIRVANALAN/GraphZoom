@@ -1,15 +1,17 @@
 #!/bin/bash
-for i in `seq 1 8`    ## coarsening level
+for i in `seq 2 5`    ## coarsening level
     do
         ratio=$(case "$i" in
             (1)  echo 600;; #9
-            (2)  echo 60;; #6
-            (3)  echo 27;;
-            (4)  echo 19;;
-            (5)  echo 12;; #4
-            (6)  echo 9;;
-            (7)  echo 5;; #3
-            (8)  echo 2;; 
+            (2)  echo 400;; #9
+            (3)  echo 300;; #9
+            (4)  echo 200;; #9
+            (5)  echo 100;; #9
+            (6)  echo 60;; #6
+            (7)  echo 27;; #5
+            (8)  echo 12;; #4
+            (9)  echo 5;; #3
+            (10)  echo 2;; 
         esac)
         # python graphzoom.py -r ${ratio} -m deepwalk
 #        python graphzoom.py -r ${ratio} -m deepwalk -pre /yushi/ -d reddit
