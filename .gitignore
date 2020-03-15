@@ -4,3 +4,5 @@ __pycache__
 graphzoom/output/
 .vscode/
 graphzoom/reduction_results/*.mtx
+*.mtx
+*.npy

@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 from pathlib import Path, posixpath
 import networkx as nx
 import os
@@ -160,7 +161,10 @@ def main():
     dataset = args.dataset
     # feature_path = "{}/dataset/{}/{}-feats.npy".format(args.prefix, dataset, dataset)
     fusion_input_path = "dataset/{}/{}.mtx".format(dataset, dataset)
-    reduce_results = "reduction_results/"
+    fusion = 'fusion' if args.fusion else 'no_fusion'
+    reduce_results = f"reduction_results/{dataset}/{fusion}/"
+    if not Path(reduce_results).exists():
+        Path(reduce_results).mkdir(parents=True)
     mapping_path = "{}Mapping.mtx".format(reduce_results)
 
     if args.fusion:
@@ -258,7 +262,7 @@ def main():
         total_time = reduce_time + embed_time + refine_time
         print("Graph Fusion     Time: 0")
     print("Graph Reduction  Time: {}".format(reduce_time))
-    print("Graph Embedding  Time: {.3f} H".format(embed_time / 3600))
+    print("Graph Embedding  Time: {:.3f} Mins".format(embed_time / 60))
     print("Graph Refinement Time: {}".format(refine_time))
     print("Total Time = Fusion_time + Reduction_time + Embedding_time + Refinement_time = {}".format(total_time))
 
