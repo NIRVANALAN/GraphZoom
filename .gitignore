@@ -7,3 +7,6 @@ graphzoom/reduction_results/*.mtx
 *.mtx
 *.npy
 *.pyc
+graphzoom/dataset/reddit/fused_reddit.mtx.bk
+CPUtime.txt
+NumLevels.txt
