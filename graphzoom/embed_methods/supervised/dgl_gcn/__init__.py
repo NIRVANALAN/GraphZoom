@@ -1,3 +1,6 @@
+from .gat import GAT
+from .gcn import GCN
+from .utils import _sample_mask,load_data
 # from .gcn import GCN
 # from .g_centroid import GATCentroid
 # from . import utils

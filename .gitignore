@@ -6,3 +6,4 @@ graphzoom/output/
 graphzoom/reduction_results/*.mtx
 *.mtx
 *.npy
+*.pyc

@@ -8,6 +8,6 @@ for i in `seq 1 2`    ## coarsening level
             # (4)  echo 19;;
             # (5)  echo 100;;
         esac)
-        python graphzoom.py -r ${ratio} -m ft -emb_arch GAT
+        python graphzoom.py -r ${ratio} -m ft 
         #python graphzoom.py -r ${ratio} -m deepwalk -f
 done

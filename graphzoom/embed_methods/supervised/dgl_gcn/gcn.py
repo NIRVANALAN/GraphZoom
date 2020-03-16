@@ -8,6 +8,7 @@ References:
 import torch
 import torch.nn as nn
 from dgl.nn.pytorch import GraphConv
+import torch.nn.functional as F
 
 
 class GCN(nn.Module):
@@ -17,7 +18,7 @@ class GCN(nn.Module):
                  num_hidden,
                  num_classes,
                  num_layers,
-                 activation,
+                 activation=F.relu,
                  dropout=0.5, log_softmax=False, *args, **kwargs):
         super(GCN, self).__init__()
         self.g = g
@@ -46,4 +47,4 @@ class GCN(nn.Module):
         return h, emb
 
     def __repr__(self):
-        return f'GCN'
+        return super().__repr__()

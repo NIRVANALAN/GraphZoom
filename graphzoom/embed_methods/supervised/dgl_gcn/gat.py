@@ -21,11 +21,10 @@ class GAT(nn.Module):
                  num_hidden,
                  num_classes,
                  heads,
-                 activation,
                  feat_drop,
                  attn_drop,
                  negative_slope,
-                 residual, log_softmax=False):
+                 residual, activation=torch.nn.functional.elu, log_softmax=False):
         super(GAT, self).__init__()
         self.g = g
         self.num_layers = num_layers

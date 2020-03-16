@@ -12,12 +12,61 @@ from dgl import DGLGraph
 from dgl.data import register_data_args, load_data as load_dgl_data, citegrh, load_graphs
 from dgl.transform import add_self_loop
 
-from graphzoom.embed_methods.supervised.dgl_gcn import GCN, GAT, _sample_mask, load_data
-from graphzoom.utils import mtx2graph, construct_proj_laplacian
+from dgl_gcn.gcn import GCN
+from dgl_gcn.gat import GAT
+from dgl_gcn.utils import _sample_mask, load_data
+from ....graphzoom.utils import *
 
 FACTORY = {
     'gcn': GCN,
     'gat': GAT, }
+
+parser = argparse.ArgumentParser(description='GCN')
+register_data_args(parser)
+parser.add_argument("--dropout", type=float, default=0.5,
+                    help="dropout probability")
+parser.add_argument("--gpu", type=int, default=0,
+                    help="gpu")
+parser.add_argument("--lr", type=float, default=1e-2,
+                    help="learning rate")
+parser.add_argument("--n-epochs", type=int, default=200,
+                    help="number of training epochs")
+parser.add_argument("--weight-decay", type=float, default=5e-4,
+                    help="Weight for L2 loss")
+parser.add_argument("--self-loop", action='store_true',
+                    help="graph self-loop (default=False)")
+parser.set_defaults(self_loop=False)
+# * attention
+parser.add_argument("--num-heads", type=int, default=8,
+                    help="number of hidden attention heads")
+parser.add_argument("--num-out-heads", type=int, default=1,
+                    help="number of output attention heads")
+parser.add_argument("--num-layers", type=int, default=1,
+                    help="number of hidden layers")
+parser.add_argument("--num-hidden", type=int, default=16,
+                    help="number of hidden units")
+parser.add_argument("--residual", action="store_true", default=False,
+                    help="use residual connection")
+parser.add_argument("--in-drop", type=float, default=.6,
+                    help="input feature dropout")
+parser.add_argument("--attn-drop", type=float, default=.6,
+                    help="attention dropout")
+parser.add_argument('--negative-slope', type=float, default=0.2,
+                    help="the negative slope of leaky relu")
+parser.add_argument('--early-stop', action='store_true', default=False,
+                    help="indicates whether to use early stop or not")
+parser.add_argument('--fastmode', action="store_true", default=False,
+                    help="skip re-evaluate the validation set")
+# * MODEL
+parser.add_argument("--arch", type=str, default='gcn',
+                    help='arch of gcn model, default: gcn')
+parser.add_argument("--coarse", action="store_false", default=True)
+# * dataset
+parser.add_argument("--prefix", type=str,
+                    default='../../graphzoom', help='dataset prefix')
+args = parser.parse_args()
+args = EasyDict(vars(args))
+print(args)
 
 
 def create_model(name, g, **kwargs):
@@ -37,7 +86,7 @@ def evaluate(model, features, labels, mask):
         return correct.item() * 1.0 / len(labels)
 
 
-def main(args):
+def gnn_embedding(**args):
     # load and preprocess dataset
     # data = load_dgl_data(args)
     dataset = args.dataset
@@ -82,8 +131,8 @@ def main(args):
         labels = torch.LongTensor(labels)
         train_mask = _sample_mask(train_ids, labels.shape[0])
         onehot_labels = F.one_hot(labels).numpy()
-        data = load_dgl_data(args)
         if dataset == 'reddit':
+            data = load_dgl_data(args)
             g = data.graph
             # test_mask = data.test_mask
             # val_mask = data.val_mask
@@ -109,16 +158,15 @@ def main(args):
     if args.coarse:
         # * load projection matrix
         levels = 2
-        reduce_results = f"graphzoom/reduction_results/{dataset}/fusion/"
+        reduce_results = f"../../graphzoom/reduction_results/{dataset}/fusion/"
         original_adj = nx.adj_matrix(G)
         projections, coarse_adj = construct_proj_laplacian(
             original_adj, levels, reduce_results)
         # *calculate coarse feature, labels
         coarse_feats = projections[0] @ data.features
         label_mask = np.expand_dims(data.train_mask, 1)
-        coarse_labels = projections[0] @ (onehot_labels * label_mask)
-        # coarse_labels = projections[0] @ onehot_labels
-
+        # coarse_labels = projections[0] @ (onehot_labels * label_mask)
+        coarse_labels = projections[0] @ onehot_labels
         coarse_graph = nx.Graph(coarse_adj[1])
         rows_sum = coarse_labels.sum(axis=1)[:, np.newaxis]
         norm_coarse_labels = coarse_labels / rows_sum
@@ -130,7 +178,6 @@ def main(args):
         #     norm_coarse_labels.shape[0])
         coarse_train_mask = _sample_mask(
             range(norm_coarse_labels.shape[0]),
-            # range(60),
             norm_coarse_labels.shape[0])
         coarse_test_mask = _sample_mask(
             range(100, 700), norm_coarse_labels.shape[0])
@@ -151,10 +198,7 @@ def main(args):
             'coarse': True
         })
         data = coarse_data
-        print('creating coarse DGLGraph')
-        start = time.process_time()
         g = DGLGraph(data.graph)
-        print(f'creating finished in {time.process_time() - start}')
     if args.coarse:
         labels = torch.FloatTensor(data.labels)
         loss_fcn = torch.nn.KLDivLoss()
@@ -267,57 +311,4 @@ def main(args):
             h.detach().cpu().numpy())
     print("Test accuracy {:.2%}".format(acc))
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='GCN')
-    register_data_args(parser)
-    parser.add_argument("--dropout", type=float, default=0.5,
-                        help="dropout probability")
-    parser.add_argument("--gpu", type=int, default=0,
-                        help="gpu")
-    parser.add_argument("--lr", type=float, default=1e-2,
-                        help="learning rate")
-    parser.add_argument("--n-epochs", type=int, default=200,
-                        help="number of training epochs")
-    # parser.add_argument("--n-hidden", type=int, default=128,
-    #                     help="number of hidden gcn units")
-    # parser.add_argument("--n-layers", type=int, default=1,
-    #                     help="number of hidden gcn layers")
-    parser.add_argument("--weight-decay", type=float, default=5e-4,
-                        help="Weight for L2 loss")
-    parser.add_argument("--self-loop", action='store_true',
-                        help="graph self-loop (default=False)")
-    parser.set_defaults(self_loop=False)
-    # * attention
-    parser.add_argument("--num-heads", type=int, default=8,
-                        help="number of hidden attention heads")
-    parser.add_argument("--num-out-heads", type=int, default=1,
-                        help="number of output attention heads")
-    parser.add_argument("--num-layers", type=int, default=1,
-                        help="number of hidden layers")
-    parser.add_argument("--num-hidden", type=int, default=16,
-                        help="number of hidden units")
-    parser.add_argument("--residual", action="store_true", default=False,
-                        help="use residual connection")
-    parser.add_argument("--in-drop", type=float, default=.6,
-                        help="input feature dropout")
-    parser.add_argument("--attn-drop", type=float, default=.6,
-                        help="attention dropout")
-    parser.add_argument('--negative-slope', type=float, default=0.2,
-                        help="the negative slope of leaky relu")
-    parser.add_argument('--early-stop', action='store_true', default=False,
-                        help="indicates whether to use early stop or not")
-    parser.add_argument('--fastmode', action="store_true", default=False,
-                        help="skip re-evaluate the validation set")
-    # * MODEL
-    parser.add_argument("--arch", type=str, default='gcn',
-                        help='arch of gcn model, default: gcn')
-    parser.add_argument("--coarse", action="store_true", default=False)
-    # * dataset
-    parser.add_argument("--prefix", type=str,
-                        default='graphzoom', help='dataset prefix')
-    args = parser.parse_args()
-    args = EasyDict(vars(args))
-    print(args)
-
-    main(args)
+    # gnn_embedding(args)
