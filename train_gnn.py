@@ -1,19 +1,24 @@
 import argparse
-from networkx.readwrite import json_graph, read_gpickle
 import time
-from easydict import EasyDict
-import numpy as np
+
 import networkx as nx
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.functional import softmax
 from dgl import DGLGraph
-from dgl.data import register_data_args, load_data as load_dgl_data, citegrh, load_graphs
+from dgl.data import citegrh
+from dgl.data import load_data as load_dgl_data
+from dgl.data import load_graphs, register_data_args
 from dgl.transform import add_self_loop
+from easydict import EasyDict
+from networkx.readwrite import json_graph, read_gpickle
+from scipy import sparse
+from torch.nn.functional import softmax
 
-from graphzoom.embed_methods.supervised.dgl_gcn import GCN, GAT, _sample_mask, load_data
-from graphzoom.utils import mtx2graph, construct_proj_laplacian
+from graphzoom.embed_methods.supervised.dgl_gcn import (GAT, GCN, _sample_mask,
+                                                        load_data)
+from graphzoom.utils import construct_proj_laplacian, mtx2graph
 
 FACTORY = {
     'gcn': GCN,
@@ -111,6 +116,7 @@ def main(args):
         levels = 2
         reduce_results = f"graphzoom/reduction_results/{dataset}/fusion/"
         original_adj = nx.adj_matrix(G)
+        sparse.save_npz(f'graphzoom/dataset/{dataset}', original_adj)
         projections, coarse_adj = construct_proj_laplacian(
             original_adj, levels, reduce_results)
         # *calculate coarse feature, labels
@@ -118,6 +124,11 @@ def main(args):
         label_mask = np.expand_dims(data.train_mask, 1)
         coarse_labels = projections[0] @ (onehot_labels * label_mask)
         # coarse_labels = projections[0] @ onehot_labels
+        # ! add train_mask
+        train_mask = torch.BoolTensor(coarse_labels.sum(axis=1))
+        import pdb
+        pdb.set_trace()
+        # ! entropy threshold
 
         coarse_graph = nx.Graph(coarse_adj[1])
         rows_sum = coarse_labels.sum(axis=1)[:, np.newaxis]
