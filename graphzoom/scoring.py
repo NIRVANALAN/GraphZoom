@@ -14,6 +14,9 @@ def run_regression(train_embeds, train_labels, test_embeds, test_labels):
     print("Test Accuracy: {:.4f}".format(acc))
 
 
+# def gcn_mlp_classifier(embeds, state_dict_path, model_arch, train_ids, test_ids):
+
+
 def load_data(dataset_dir, dataset):
     if dataset in ['cora', 'citeseer', 'pubmed']:
         G = json_graph.node_link_graph(

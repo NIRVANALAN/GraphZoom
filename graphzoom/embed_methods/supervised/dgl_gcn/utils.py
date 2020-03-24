@@ -1,4 +1,6 @@
 from easydict import EasyDict
+from scipy import sparse
+from pathlib import Path
 import json
 import torch
 import torch.nn.functional as F
@@ -18,9 +20,22 @@ def _sample_mask(idx, l):
 # G, features, class_map = load_data(train_prefix)
 def load_data(dataset_dir, dataset):
     feats = np.load(dataset_dir + f"/{dataset}-feats.npy")
+    npz_path = Path(f'{dataset_dir}/{dataset}.npz')
     if dataset in ['cora', 'citeseer', 'pubmed']:
-        G = json_graph.node_link_graph(
-            json.load(open(dataset_dir + "/{}-G.json".format(dataset))))
+        if not npz_path.exists():
+            G = json_graph.node_link_graph(
+                json.load(open(dataset_dir + "/{}-G.json".format(dataset))))
+            original_adj = nx.adj_matrix(G)
+            sparse.save_npz(str(npz_path), original_adj)
+        else:
+            original_adj = sparse.load_npz(str(npz_path))
+        if not npz_path.exists():
+            G = read_gpickle(
+                dataset_dir + f'/{dataset}.gpickle')
+            original_adj = nx.adj_matrix(G)
+            sparse.save_npz(str(npz_path), original_adj)
+        else:
+            original_adj = sparse.load_npz(str(npz_path))
         labels = json.load(
             open(dataset_dir + "/{}-class_map.json".format(dataset)))
         train_ids = [n for n in G.nodes() if not G.node[n]['val']
@@ -30,14 +45,19 @@ def load_data(dataset_dir, dataset):
         test_labels = [labels[str(i)] for i in test_ids]
         labels = list(labels.values())
     elif dataset in ['reddit', 'Amazon2M']:
-        G = read_gpickle(
-            dataset_dir + f'/{dataset}.gpickle')
+        if not npz_path.exists():
+            G = read_gpickle(
+                dataset_dir + f'/{dataset}.gpickle')
+            original_adj = nx.adj_matrix(G)
+            sparse.save_npz(str(npz_path), original_adj)
+        else:
+            original_adj = sparse.load_npz(str(npz_path))
         train_ids = np.load(dataset_dir+f'/{dataset}_train_data.npy')
         test_ids = np.load(dataset_dir+f'/{dataset}_test_data.npy')
         labels = np.load(dataset_dir+f'/{dataset}_labels.npy')
         train_labels = labels[train_ids]
         test_labels = labels[test_ids]
-    return G, labels, train_ids, test_ids, train_labels, test_labels, feats
+    return original_adj, labels, train_ids, test_ids, train_labels, test_labels, feats
 
 
 class EarlyStopping:

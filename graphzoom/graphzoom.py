@@ -221,7 +221,7 @@ def main():
         embeddings = graphsage(G, feats, args.sage_model,
                                args.sage_weighted, int(1000/args.reduce_ratio))
     elif args.embed_method == 'ft':
-        emb_path = f'../embeddings/{args.emb_arch}_{args.dataset}_emb_level_1.npy'
+        emb_path = f'../embeddings/{args.emb_arch}_{args.dataset}_emb_level_1_mask.npy'
         # embeddings = np.load(f'{prefix}/{args.dataset}_emb_level_1.npy')
         embeddings = np.load(emb_path)
 

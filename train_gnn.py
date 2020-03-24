@@ -1,5 +1,7 @@
 import argparse
 import time
+from pathlib import Path
+from torch.distributions import Categorical
 
 import networkx as nx
 import numpy as np
@@ -52,25 +54,21 @@ def main(args):
     # data = load_data(dataset_dir, args.dataset)
 
     load_data_time = time.time()
-    if dataset == 'Amazon2M':
-        g, graph_labels = load_graphs(
-            '/mnt/yushi/dataset/Amazon2M/Amazon2M_dglgraph.bin')
-        assert len(g) == 1
+    # if dataset in ['Amazon2M', 'reddit']:
+    if dataset in ['Amazon2M']:
+        g, _ = load_graphs(
+            f'{args.prefix}/dataset/Amazon2M/Amazon2M_dglgraph.bin')
         g = g[0]
         data = g.ndata
         features = torch.FloatTensor(data['feat'])
-        # labels = torch.LongTensor(data['label'])
         onehot_labels = F.one_hot(data['label']).numpy()
         train_mask = data['train_mask'].bool()
         val_mask = data['val_mask'].bool()
         test_mask = val_mask
-        G = read_gpickle(
-            dataset_dir + f'/{dataset}.gpickle')
         data = EasyDict({
-            'graph': G,
+            'graph': g,
             'labels': data['label'],
             'onehot_labels': onehot_labels,
-            # 'features': feats,
             'features': data['feat'],
             'train_mask': train_mask,
             'val_mask': val_mask,
@@ -80,25 +78,21 @@ def main(args):
 
         })
     else:
-        G, labels, train_ids, test_ids, train_labels, test_labels, feats = load_data(
+        original_adj, labels, train_ids, test_ids, train_labels, test_labels, feats = load_data(
             dataset_dir, args.dataset)
-        # val_ids = test_ids[1000:1500]
-        # test_ids = test_ids[:1000]
+        data = load_dgl_data(args)
         labels = torch.LongTensor(labels)
         train_mask = _sample_mask(train_ids, labels.shape[0])
         onehot_labels = F.one_hot(labels).numpy()
-        data = load_dgl_data(args)
         if dataset == 'reddit':
             g = data.graph
-            # test_mask = data.test_mask
-            # val_mask = data.val_mask
         else:
             val_ids = test_ids[1000:1500]
             test_ids = test_ids[:1000]
             test_mask = _sample_mask(test_ids, labels.shape[0])
             val_mask = _sample_mask(val_ids, labels.shape[0])
             data = EasyDict({
-                'graph': G,
+                'graph': data.graph,
                 'labels': labels,
                 'onehot_labels': onehot_labels,
                 'features': feats,
@@ -109,14 +103,12 @@ def main(args):
                 'num_labels': onehot_labels.shape[1],
                 'coarse': False
             })
-            g = DGLGraph(data.graph)
+            # g = DGLGraph(data.graph)
     print(f'load data finished: {time.time() - load_data_time}')
     if args.coarse:
         # * load projection matrix
         levels = 2
         reduce_results = f"graphzoom/reduction_results/{dataset}/fusion/"
-        original_adj = nx.adj_matrix(G)
-        sparse.save_npz(f'graphzoom/dataset/{dataset}', original_adj)
         projections, coarse_adj = construct_proj_laplacian(
             original_adj, levels, reduce_results)
         # *calculate coarse feature, labels
@@ -125,24 +117,33 @@ def main(args):
         coarse_labels = projections[0] @ (onehot_labels * label_mask)
         # coarse_labels = projections[0] @ onehot_labels
         # ! add train_mask
-        train_mask = torch.BoolTensor(coarse_labels.sum(axis=1))
-        import pdb
-        pdb.set_trace()
-        # ! entropy threshold
-
-        coarse_graph = nx.Graph(coarse_adj[1])
         rows_sum = coarse_labels.sum(axis=1)[:, np.newaxis]
         norm_coarse_labels = coarse_labels / rows_sum
+        norm_label_entropy = Categorical(
+            torch.Tensor(norm_coarse_labels)).entropy()
+        # import pdb
+        # pdb.set_trace()
+        label_entropy_mask = torch.BoolTensor(norm_label_entropy < 0.01)
+        # coarse_train_mask = torch.BoolTensor(coarse_labels.sum(axis=1))
+        coarse_train_mask = label_entropy_mask
+        # ! entropy threshold
+
+        # coarse_graph = nx.Graph(coarse_adj[1])
+        print('creating coarse DGLGraph')
+        start = time.process_time()
+        g = DGLGraph()
+        g.from_scipy_sparse_matrix(coarse_adj[1])
+        print(f'creating finished in {time.process_time() - start}')
         # list(map(np.shape, [coarse_embed, coarse_labels]))
         # * new train/test masks
         coarsen_ratio = projections[0].shape[1] / projections[0].shape[0]
         # coarse_train_mask = _sample_mask(
         #     range(int(coarsen_ratio*len(data.train_mask.int().sum().item()))),
         #     norm_coarse_labels.shape[0])
-        coarse_train_mask = _sample_mask(
-            range(norm_coarse_labels.shape[0]),
-            # range(60),
-            norm_coarse_labels.shape[0])
+        # coarse_train_mask = _sample_mask(
+        #     range(norm_coarse_labels.shape[0]),
+        # range(60),
+        # norm_coarse_labels.shape[0])
         coarse_test_mask = _sample_mask(
             range(100, 700), norm_coarse_labels.shape[0])
         coarse_val_mask = _sample_mask(
@@ -150,7 +151,7 @@ def main(args):
 
         # *replace data
         coarse_data = EasyDict({
-            'graph': coarse_graph,
+            'graph': g,
             'labels': coarse_labels,
             #     'onehot_labels': onehot_labels,
             'features': coarse_feats,
@@ -162,13 +163,9 @@ def main(args):
             'coarse': True
         })
         data = coarse_data
-        print('creating coarse DGLGraph')
-        start = time.process_time()
-        g = DGLGraph(data.graph)
-        print(f'creating finished in {time.process_time() - start}')
     if args.coarse:
         labels = torch.FloatTensor(data.labels)
-        loss_fcn = torch.nn.KLDivLoss()
+        loss_fcn = torch.nn.KLDivLoss(reduction='batchmean')
         print('training coarse')
     else:
         labels = torch.LongTensor(data.labels)
@@ -199,9 +196,7 @@ def main(args):
     # graph preprocess and calculate normalization factor
     # add self loop
     if args.self_loop or args.arch == 'gat':
-        g = add_self_loop(g)
-        # g.remove_edges_from(nx.selfloop_edges(g))
-        # g.add_edges_from(zip(g.nodes(), g.nodes()))
+        g = add_self_loop(data.graph)
         print('add self_loop')
     n_edges = g.number_of_edges()
     print("""----Data statistics------'
@@ -274,8 +269,10 @@ def main(args):
     if not args.coarse:
         acc = evaluate(model, features, labels, test_mask)
     print(h.shape)
-    np.save(f'embeddings/{(args.arch).upper()}_{dataset}_emb_level_1',
+    np.save(f'embeddings/{(args.arch).upper()}_{dataset}_emb_level_1_mask',
             h.detach().cpu().numpy())
+    torch.save(model.state_dict(),
+               f'embeddings/{(args.arch).upper()}_{dataset}_emb_level_1_params.pth.tar',)
     print("Test accuracy {:.2%}".format(acc))
 
 
