@@ -11,6 +11,9 @@ def run_regression(train_embeds, train_labels, test_embeds, test_labels):
     log.fit(train_embeds, train_labels)
     pred_labels = (log.predict(test_embeds)).tolist()
     acc = accuracy_score(test_labels, pred_labels)
+    import pdb
+    pdb.set_trace()
+    np.save('reddit_pred_labels.npy', pred_labels)
     print("Test Accuracy: {:.4f}".format(acc))
 
 
