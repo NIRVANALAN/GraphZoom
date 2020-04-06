@@ -36,14 +36,15 @@ def load_nx_graph(dataset, prefix):
 
 def load_dataset(dataset, prefix='',):
     mtx_path = Path("dataset/{}/{}.mtx".format(dataset, dataset))
-    feats_path = Path(prefix, 'dataset', dataset, f'{dataset}-feats.npy')
+    prefix = Path(prefix, 'dataset', dataset)
+    feats_path = Path(prefix, f'{dataset}-feats.npy')
     feats = np.load(str(feats_path))
     if mtx_path.exists():
         print('load previous mtxfile')
         laplacian = mmread(str(mtx_path))
     else:
         if dataset in ['citeseer', 'cora', 'pubmed', ]:
-            dataset_path = str(prefix) + '-G.json'
+            dataset_path = str(Path(prefix, f'{dataset}-G.json'))
             G_data = json.load(
                 open(dataset_path))
             G = json_graph.node_link_graph(G_data)

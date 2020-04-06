@@ -22,25 +22,16 @@ def load_data(dataset_dir, dataset):
     feats = np.load(dataset_dir + f"/{dataset}-feats.npy")
     npz_path = Path(f'{dataset_dir}/{dataset}.npz')
     if dataset in ['cora', 'citeseer', 'pubmed']:
-        if not npz_path.exists():
-            G = json_graph.node_link_graph(
-                json.load(open(dataset_dir + "/{}-G.json".format(dataset))))
-            original_adj = nx.adj_matrix(G)
-            sparse.save_npz(str(npz_path), original_adj)
-        else:
-            original_adj = sparse.load_npz(str(npz_path))
-        if not npz_path.exists():
-            G = read_gpickle(
-                dataset_dir + f'/{dataset}.gpickle')
-            original_adj = nx.adj_matrix(G)
-            sparse.save_npz(str(npz_path), original_adj)
-        else:
-            original_adj = sparse.load_npz(str(npz_path))
+        # if not npz_path.exists():
+        G = json_graph.node_link_graph(
+            json.load(open(dataset_dir + "/{}-G.json".format(dataset))))
+        original_adj = nx.adj_matrix(G)
+        # sparse.save_npz(str(npz_path), original_adj)
         labels = json.load(
             open(dataset_dir + "/{}-class_map.json".format(dataset)))
-        train_ids = [n for n in G.nodes() if not G.node[n]['val']
-                     and not G.node[n]['test']]
-        test_ids = [n for n in G.nodes() if G.node[n]['test']]
+        train_ids = [n for n in G.nodes() if not G.nodes[n]['val']
+                     and not G.nodes[n]['test']]
+        test_ids = [n for n in G.nodes() if G.nodes[n]['test']]
         train_labels = [labels[str(i)] for i in train_ids]
         test_labels = [labels[str(i)] for i in test_ids]
         labels = list(labels.values())
