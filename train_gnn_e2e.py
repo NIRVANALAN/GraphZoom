@@ -317,7 +317,7 @@ if __name__ == '__main__':
     # * MODEL
     parser.add_argument("--arch", type=str, default='gcn',
                         help='arch of gcn model, default: gcn')
-    parser.add_argument("--coarse", action="store_true", default=False)
+    parser.add_argument("--coarse", action="store_false", default=True)
     parser.add_argument("--level", type=int, default=2)
     # * dataset
     parser.add_argument("--prefix", type=str,
