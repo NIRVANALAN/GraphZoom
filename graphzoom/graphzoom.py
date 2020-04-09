@@ -146,8 +146,7 @@ def main():
     parser.add_argument("-m", "--embed_method", type=str, default="deepwalk",
                         help="[deepwalk, node2vec, graphsage]")
     parser.add_argument("-pre", "--prefix", type=str, default="")
-    parser.add_argument("-f", "--fusion", default=True, action="store_false",
-                        help="whether use graph fusion")
+    parser.add_argument("-pj", "--proj", type=str, default='fusion', help="projection matrix type")
     parser.add_argument("-emb_arch", "--emb_arch", default='GCN')
     parser.add_argument("-p", "--power", default=False, action="store_true",
                         help="Strong power of graph filter, set True to enhance filter power")
@@ -161,10 +160,14 @@ def main():
     dataset = args.dataset
     # feature_path = "{}/dataset/{}/{}-feats.npy".format(args.prefix, dataset, dataset)
     fusion_input_path = "dataset/{}/{}.mtx".format(dataset, dataset)
-    fusion = 'fusion' if args.fusion else 'no_fusion'
-    reduce_results = f"reduction_results/{dataset}/{fusion}/"
+    proj_matrix_type = 'fusion' if args.fusion else 'no_fusion'
+    reduce_results = f"reduction_results/{dataset}/{proj_matrix_type}/"
+    coarsen_flag=True
     if not Path(reduce_results).exists():
         Path(reduce_results).mkdir(parents=True)
+    else:
+        coarsen_flag=False
+        print('skip fusion & coarsen')
     mapping_path = "{}Mapping.mtx".format(reduce_results)
 
     if args.fusion:
@@ -179,26 +182,27 @@ def main():
     #     feature = np.load(feature_path)
 
 ######Graph Fusion######
-    if args.fusion:
-        fusion_time = 0
-        print("%%%%%% Starting Graph Fusion %%%%%%")
-        fusion_path = Path("dataset/{}/fused_{}.mtx".format(dataset, dataset))
-        if fusion_path.exists():
-            laplacian = mmread(str(fusion_path))
-            print('load previous fusion laplacian')
-        else:
-            print('start fusion calculation')
-            fusion_start = time.process_time()
-            laplacian = graph_fusion(laplacian, feature, args.num_neighs, args.mcr_dir,
-                                     fusion_input_path, args.search_ratio, reduce_results, mapping_path, dataset)
-            fusion_time = time.process_time() - fusion_start
-            print("Graph Fusion     Time: {}".format(fusion_time))
+    if coarsen_flag:
+        if args.fusion:
+            fusion_time = 0
+            print("%%%%%% Starting Graph Fusion %%%%%%")
+            fusion_path = Path("dataset/{}/fused_{}.mtx".format(dataset, dataset))
+            if fusion_path.exists():
+                laplacian = mmread(str(fusion_path))
+                print('load previous fusion laplacian')
+            else:
+                print('start fusion calculation')
+                fusion_start = time.process_time()
+                laplacian = graph_fusion(laplacian, feature, args.num_neighs, args.mcr_dir,
+                                        fusion_input_path, args.search_ratio, reduce_results, mapping_path, dataset)
+                fusion_time = time.process_time() - fusion_start
+                print("Graph Fusion     Time: {}".format(fusion_time))
 
 ######Graph Reduction######
-    print("%%%%%% Starting Graph Reduction %%%%%%")
-    os.system('./run_coarsening.sh {} {} {} n {}'.format(args.mcr_dir,
-                                                         coarsen_input_path, args.reduce_ratio, reduce_results))
-    reduce_time = read_time("{}CPUtime.txt".format(reduce_results))
+        print("%%%%%% Starting Graph Reduction %%%%%%")
+        os.system('./run_coarsening.sh {} {} {} n {}'.format(args.mcr_dir,
+                                                            coarsen_input_path, args.reduce_ratio, reduce_results))
+        reduce_time = read_time("{}CPUtime.txt".format(reduce_results))
 
 
 ######Embed Reduced Graph######
