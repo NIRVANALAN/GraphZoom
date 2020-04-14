@@ -102,9 +102,12 @@ def mtx2graph(mtx_path):
             info = line.split()
             if i == 0:
                 num_nodes = int(info[0])
-            elif int(info[0]) < int(info[1]):
+            # elif int(info[0]) < int(info[1]):
+            #     G.add_edge(int(info[0])-1, int(info[1]) -
+            #                1, wgt=abs(float(info[2])))
+            elif int(info[0])!=int(info[1]):
                 G.add_edge(int(info[0])-1, int(info[1]) -
-                           1, wgt=abs(float(info[2])))
+                           1, wgt=abs(float(info[2]))) #TODO
     # add isolated nodes
     for i in range(num_nodes):
         G.add_node(i)

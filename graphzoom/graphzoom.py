@@ -119,7 +119,10 @@ def smooth_filter(laplacian_matrix, lda):
 
 
 def refinement(levels, projections, coarse_laplacian, embeddings, lda, power):
+    print(f'embeddings shape: {embeddings.shape}')
     for i in reversed(range(levels)):
+        # import pdb; pdb.set_trace()
+        print(f'refinement projection shape: {projections[i].shape}')
         embeddings = (projections[i].transpose()) @ embeddings
         filter_ = smooth_filter(coarse_laplacian[i], lda)
         if power or i == 0:   # power controls whether smooth intermediate embeddings
@@ -160,7 +163,7 @@ def main():
     dataset = args.dataset
     # feature_path = "{}/dataset/{}/{}-feats.npy".format(args.prefix, dataset, dataset)
     fusion_input_path = "dataset/{}/{}.mtx".format(dataset, dataset)
-    proj_matrix_type = 'fusion' if args.fusion else 'no_fusion'
+    proj_matrix_type = args.proj
     reduce_results = f"reduction_results/{dataset}/{proj_matrix_type}/"
     coarsen_flag=True
     if not Path(reduce_results).exists():
@@ -170,11 +173,11 @@ def main():
         print('skip fusion & coarsen')
     mapping_path = "{}Mapping.mtx".format(reduce_results)
 
-    if args.fusion:
-        coarsen_input_path = "dataset/{}/fused_{}.mtx".format(dataset, dataset)
+    if args.proj in ('fusion'):
+        input_path = "dataset/{}/fused_{}.mtx".format(dataset, dataset)
     else:
-        coarsen_input_path = "dataset/{}/{}.mtx".format(dataset, dataset)
-
+        input_path = "dataset/{}/{}.mtx".format(dataset, dataset)
+    print(f'coarse_input_path: {input_path}')
 ######Load Data######
     print("%%%%%% Loading Graph Data %%%%%%")
     laplacian, feature = load_dataset(dataset, args.prefix)
@@ -182,33 +185,38 @@ def main():
     #     feature = np.load(feature_path)
 
 ######Graph Fusion######
-    if coarsen_flag:
-        if args.fusion:
-            fusion_time = 0
-            print("%%%%%% Starting Graph Fusion %%%%%%")
-            fusion_path = Path("dataset/{}/fused_{}.mtx".format(dataset, dataset))
-            if fusion_path.exists():
-                laplacian = mmread(str(fusion_path))
-                print('load previous fusion laplacian')
-            else:
-                print('start fusion calculation')
-                fusion_start = time.process_time()
-                laplacian = graph_fusion(laplacian, feature, args.num_neighs, args.mcr_dir,
-                                        fusion_input_path, args.search_ratio, reduce_results, mapping_path, dataset)
-                fusion_time = time.process_time() - fusion_start
-                print("Graph Fusion     Time: {}".format(fusion_time))
+    fusion_time, reduce_time = 0, 0
+    # if args.proj!=None:
+        # if args.fusion:
+            # fusion_time = 0
+    if Path(input_path).exists():
+        laplacian = mmread(input_path)
+        print('load previous dataset laplacian')
+    else:
+        print("%%%%%% Starting Graph Fusion %%%%%%")
+        print('start fusion calculation')
+        fusion_start = time.process_time()
+        laplacian = graph_fusion(laplacian, feature, args.num_neighs, args.mcr_dir,
+                                fusion_input_path, args.search_ratio, reduce_results, mapping_path, dataset) # load original mapping matrix, fusion on it
+        fusion_time = time.process_time() - fusion_start
+        print("Graph Fusion     Time: {}".format(fusion_time))
 
 ######Graph Reduction######
+    # ! ignore fusion coarsen
+    if args.proj!='border':
         print("%%%%%% Starting Graph Reduction %%%%%%")
         os.system('./run_coarsening.sh {} {} {} n {}'.format(args.mcr_dir,
-                                                            coarsen_input_path, args.reduce_ratio, reduce_results))
+                                                            input_path, args.reduce_ratio, reduce_results))
         reduce_time = read_time("{}CPUtime.txt".format(reduce_results))
+    else:
+        print(f'load original projections')
 
 
 ######Embed Reduced Graph######
     G = mtx2graph("{}Gs.mtx".format(reduce_results))
 
     print("%%%%%% Starting Graph Embedding %%%%%%")
+    print(G.number_of_edges(), G.number_of_nodes())
     embed_start = time.process_time()
     if args.embed_method == "deepwalk":
         embeddings = deepwalk(G)
@@ -236,6 +244,7 @@ def main():
     levels = read_levels("{}NumLevels.txt".format(reduce_results))
     projections, coarse_laplacian = construct_proj_laplacian(
         laplacian, levels, reduce_results)
+    import pdb; pdb.set_trace()
 
 ######Refinement######
     print("%%%%%% Starting Graph Refinement %%%%%%")
@@ -248,7 +257,7 @@ def main():
 ######Save Embeddings######
     embed_path = f'{args.embed_path}/{args.dataset}_level_{levels}.npy'
     print(f'embed_path: {embed_path}')
-    np.save(embed_path, embeddings)
+    # np.save(embed_path, embeddings)
 
 
 ######Evaluation######
@@ -259,7 +268,7 @@ def main():
 
 ######Report timing information######
     print("%%%%%% Single CPU time %%%%%%")
-    if args.fusion:
+    if coarsen_flag:
         total_time = fusion_time + reduce_time + embed_time + refine_time
         print("Graph Fusion     Time: {}".format(fusion_time))
     else:
