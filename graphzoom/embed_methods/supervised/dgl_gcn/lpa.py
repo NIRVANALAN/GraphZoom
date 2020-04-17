@@ -17,19 +17,10 @@ from dgl import function as fn
 from dgl.base import DGLError
 
 # pylint: disable=W0235
-class LabalePropagation(nn.Module):
+class SmoothFilter(nn.Module):
     r"""Apply label propagation algorithm
     Y_k+1 = D^(-1)AL
     yi_k+1 = yi(0)
-
-    .. math::
-      h_i^{(l+1)} = \sigma(b^{(l)} + \sum_{j\in\mathcal{N}(i)}\frac{1}{c_{ij}}h_j^{(l)}W^{(l)})
-
-    where :math:`\mathcal{N}(i)` is the neighbor set of node :math:`i`. :math:`c_{ij}` is equal
-    to the product of the square root of node degrees:
-    :math:`\sqrt{|\mathcal{N}(i)|}\sqrt{|\mathcal{N}(j)|}`. :math:`\sigma` is an activation
-    function.
-
 
     Parameters
     ----------
@@ -40,59 +31,38 @@ class LabalePropagation(nn.Module):
         where the :math:`c_{ij}` in the paper is applied.
     """
     def __init__(self,
-                 in_feats,
-                 out_feats,
-                 norm='both',
-                 weight=True,
-                 bias=True,
-                 activation=None):
-        super(LabalePropagation, self).__init__()
+                 norm='both'):
+        super(SmoothFilter, self).__init__()
         if norm not in ('none', 'both', 'right'):
             raise DGLError('Invalid norm value. Must be either "none", "both" or "right".'
                            ' But got "{}".'.format(norm))
         self._norm = norm
 
-    def forward(self, graph, label, weight=None):
+    def forward(self, graph, embeddings):
 
         graph = graph.local_var()
 
         if self._norm == 'both':
-            degs = graph.out_degrees().to(label.device).float().clamp(min=1)
+            degs = graph.out_degrees().to(embeddings.device).float().clamp(min=1)
             norm = th.pow(degs, -0.5)
-            shp = norm.shape + (1,) * (label.dim() - 1)
+            shp = norm.shape + (1,) * (embeddings.dim() - 1)
             norm = th.reshape(norm, shp)
-            label = label * norm
+            embeddings = embeddings * norm
 
-
-        if self._in_feats > self._out_feats:
-            # mult W first to reduce the feature size for aggregation.
-            if weight is not None:
-                label = th.matmul(label, weight)
-            graph.srcdata['h'] = label
+            graph.srcdata['h'] = embeddings
             graph.update_all(fn.copy_src(src='h', out='m'),
                              fn.sum(msg='m', out='h'))
             rst = graph.dstdata['h']
-        else:
-            # aggregate first then mult W
-            graph.srcdata['h'] = label
-            graph.update_all(fn.copy_src(src='h', out='m'),
-                             fn.sum(msg='m', out='h'))
-            rst = graph.dstdata['h']
-            if weight is not None:
-                rst = th.matmul(rst, weight)
 
         if self._norm != 'none':
-            degs = graph.in_degrees().to(label.device).float().clamp(min=1)
+            degs = graph.in_degrees().to(embeddings.device).float().clamp(min=1)
             if self._norm == 'both':
                 norm = th.pow(degs, -0.5)
             else:
                 norm = 1.0 / degs
-            shp = norm.shape + (1,) * (label.dim() - 1)
+            shp = norm.shape + (1,) * (embeddings.dim() - 1)
             norm = th.reshape(norm, shp)
             rst = rst * norm
-
-
-
         return rst
 
 class LPA(nn.Module):
@@ -109,13 +79,13 @@ class LPA(nn.Module):
         self.layers = nn.ModuleList()
         # input layer
         self.layers.append(
-            LabalePropagation(in_dim, num_hidden, activation=activation))
+            SmoothFilter(in_dim, num_hidden, activation=activation))
         # hidden layers
         for i in range(num_layers - 1):
             self.layers.append(
-                LabalePropagation(num_hidden, num_hidden, activation=activation))
+                SmoothFilter(num_hidden, num_hidden, activation=activation))
         # output layer
-        self.layers.append(LabalePropagation(num_hidden, num_classes))
+        self.layers.append(SmoothFilter(num_hidden, num_classes))
         self.dropout = nn.Dropout(p=dropout)
         self.log_softmax = log_softmax
 

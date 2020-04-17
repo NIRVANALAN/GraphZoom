@@ -1,5 +1,5 @@
 #!/bin/bash
-for i in `seq 1 5`    ## coarsening level
+for i in `seq 1 1`    ## coarsening level
     do
         ratio=$(case "$i" in
             (1)  echo 20;; 
@@ -8,5 +8,5 @@ for i in `seq 1 5`    ## coarsening level
             (4)  echo 27;;
             (5)  echo 60;;
         esac)
-        python graphzoom.py -m deepwalk -d pubmed -r ${ratio} --proj no_fusion
+        python graphzoom.py -m deepwalk -d pubmed -r ${ratio} --proj border
     done

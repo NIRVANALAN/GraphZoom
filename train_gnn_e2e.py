@@ -23,7 +23,7 @@ from graphzoom.embed_methods.supervised.dgl_gcn import (GAT, GCN, _sample_mask, 
 from graphzoom.utils import construct_proj_laplacian, mtx2graph
 import torch
 import numpy as np
-from scipy.sparse import coo_matrix, csr_matrix 
+from scipy.sparse import coo_matrix, csr_matrix
 
 FACTORY = {
     'gcn': GCN,
@@ -82,32 +82,32 @@ def main(args):
 
         })
     else:
-        original_adj, labels, train_ids, test_ids, train_labels, test_labels, feats = load_data(
-            dataset_dir, args.dataset)
         data = load_dgl_data(args)
-        labels = torch.LongTensor(labels)
-        train_mask = _sample_mask(train_ids, labels.shape[0])
-        onehot_labels = F.one_hot(labels).numpy()
-        if dataset == 'reddit':
-            g = data.graph
-        else:
-            g = DGLGraph(data.graph)
-            val_ids = test_ids[1000:1500]
-            test_ids = test_ids[:1000]
-            test_mask = _sample_mask(test_ids, labels.shape[0])
-            val_mask = _sample_mask(val_ids, labels.shape[0])
-            data = EasyDict({
-                'graph': data.graph,
-                'labels': labels,
-                'onehot_labels': onehot_labels,
-                # 'features': feats,
-                'features': data.features,
-                'train_mask': train_mask,
-                'val_mask': val_mask,
-                'test_mask': test_mask,
-                'num_labels': onehot_labels.shape[1],
-                'coarse': False
-            })
+    original_adj, labels, train_ids, test_ids, train_labels, test_labels, feats = load_data(
+        dataset_dir, args.dataset)
+    labels = torch.LongTensor(labels)
+    train_mask = _sample_mask(train_ids, labels.shape[0])
+    onehot_labels = F.one_hot(labels).numpy()
+    if dataset == 'reddit':
+        g = data.graph
+    else:
+        g = DGLGraph(data.graph)
+        val_ids = test_ids[1000:1500]
+        test_ids = test_ids[:1000]
+        test_mask = _sample_mask(test_ids, labels.shape[0])
+        val_mask = _sample_mask(val_ids, labels.shape[0])
+        data = EasyDict({
+            'graph': data.graph,
+            'labels': labels,
+            'onehot_labels': onehot_labels,
+            # 'features': feats,
+            'features': data.features,
+            'train_mask': train_mask,
+            'val_mask': val_mask,
+            'test_mask': test_mask,
+            'num_labels': onehot_labels.shape[1],
+            'coarse': False
+        })
             # g = DGLGraph(data.graph)
     print(f'load data finished: {time.time() - load_data_time}')
     if args.coarse:
@@ -115,55 +115,34 @@ def main(args):
         levels = args.level
         reduce_results = f"graphzoom/reduction_results/{dataset}/fusion/"
         projections, coarse_adj = construct_proj_laplacian(
-            original_adj, levels, reduce_results)
+            original_adj, levels+1, reduce_results) # coarsen levels
         # *calculate coarse feature, labels
         # label_mask = np.expand_dims(data.train_mask, 1)
         # coarse_labels = projections[0] @ (onehot_labels * label_mask)
         print('creating coarse DGLGraph')
         start = time.process_time()
-        # ? what will happen if g is assigned to other variables later
+        # ! what will happen if g is assigned to other variables later
         multi_level_dglgraph = [g]
-        data.features = projections[0] @ data.features
-        for i in range(1, levels):
+        for i in range(1, len(coarse_adj)):
             g = DGLGraph()
             g.from_scipy_sparse_matrix(coarse_adj[i])
             multi_level_dglgraph.append(g)
-            if i==levels-1:
-                break
-            data.features = projections[i] @ data.features
+            data.features = projections[i-1] @ data.features
         multi_level_dglgraph.reverse()
         projections.reverse()
+        projections = projections[1:]
         for projection in range(len(projections)):
             coo = projections[projection].tocoo()
-            # coo = coo_matrix(([3,4,5], ([0,1,1], [2,0,2])), shape=(2,3))
             values = coo.data
             indices = np.vstack((coo.row, coo.col))
-
             i = torch.LongTensor(indices)
             v = torch.FloatTensor(values)
-            projections[projection] = torch.sparse.FloatTensor(i, v, torch.Size(coo.shape)).cuda()
+            projections[projection] = torch.sparse.FloatTensor(
+                i, v, torch.Size(coo.shape)).cuda()
         print(f'creating finished in {time.process_time() - start}')
         # * new train/test masks
 
-        # *replace data
-        # coarse_data = EasyDict({
-        #     'graph': g,
-        #     'labels': coarse_labels,
-        #     #     'onehot_labels': onehot_labels,
-        #     'features': coarse_feats,
-        #     'train_mask': coarse_train_mask,
-        #     'val_mask': coarse_val_mask,
-        #     'test_mask': coarse_test_mask,
-        #     'num_classes': norm_coarse_labels.shape[1],
-        #     'num_labels': onehot_labels.shape[1],
-        #     'coarse': True
-        # })
-        # data = coarse_data
-    # if args.coarse:
-    #     labels = torch.FloatTensor(data.labels)
-    #     loss_fcn = torch.nn.KLDivLoss(reduction='batchmean')
-    #     print('training coarse')
-    # else:
+        # *replace datao
     labels = torch.LongTensor(data.labels)
     loss_fcn = torch.nn.CrossEntropyLoss()
     features = torch.FloatTensor(data.features)
@@ -178,16 +157,13 @@ def main(args):
     in_feats = features.shape[1]
     n_classes = data.num_labels
 
-    if args.gpu < 0:
-        cuda = False
-    else:
-        cuda = True
-        torch.cuda.set_device(args.gpu)
-        features = features.cuda()
-        labels = labels.cuda()
-        train_mask = train_mask.cuda()
-        val_mask = val_mask.cuda()
-        test_mask = test_mask.cuda()
+    cuda = True
+    torch.cuda.set_device(args.gpu)
+    features = features.cuda()
+    labels = labels.cuda()
+    train_mask = train_mask.cuda()
+    val_mask = val_mask.cuda()
+    test_mask = test_mask.cuda()
 
     # graph preprocess and calculate normalization factor
     # add self loop
@@ -226,7 +202,7 @@ def main(args):
                          feat_drop=args.in_drop,
                          attn_drop=args.attn_drop,
                          negative_slope=args.negative_slope,
-                         residual=args.residual, log_softmax=args.coarse, projection_matrix=projections)
+                         residual=args.residual, log_softmax=False, projection_matrix=projections)
 
     if cuda:
         model.cuda()
@@ -318,7 +294,7 @@ if __name__ == '__main__':
     parser.add_argument("--arch", type=str, default='gcn',
                         help='arch of gcn model, default: gcn')
     parser.add_argument("--coarse", action="store_false", default=True)
-    parser.add_argument("--level", type=int, default=2)
+    parser.add_argument("--level", type=int, default=3)
     # * dataset
     parser.add_argument("--prefix", type=str,
                         default='graphzoom', help='dataset prefix')

@@ -114,7 +114,7 @@ def smooth_filter(laplacian_matrix, lda):
         d_inv_sqrt = np.squeeze(np.asarray(np.power(degree_vec, -0.5)))
     d_inv_sqrt[np.isinf(d_inv_sqrt) | np.isnan(d_inv_sqrt)] = 0
     degree_matrix = diags(d_inv_sqrt, 0)
-    norm_adj = degree_matrix @ adj_matrix @ degree_matrix
+    norm_adj = degree_matrix @ adj_matrix @ degree_matrix # D^(-1/2)AD^(-1/2)
     return norm_adj
 
 
@@ -126,7 +126,7 @@ def refinement(levels, projections, coarse_laplacian, embeddings, lda, power):
         embeddings = (projections[i].transpose()) @ embeddings
         filter_ = smooth_filter(coarse_laplacian[i], lda)
         if power or i == 0:   # power controls whether smooth intermediate embeddings
-            embeddings = filter_ @ (filter_ @ embeddings)
+            embeddings = filter_ @ (filter_ @ embeddings) # ! K=2
     return embeddings
 
 
@@ -186,9 +186,6 @@ def main():
 
 ######Graph Fusion######
     fusion_time, reduce_time = 0, 0
-    # if args.proj!=None:
-        # if args.fusion:
-            # fusion_time = 0
     if Path(input_path).exists():
         laplacian = mmread(input_path)
         print('load previous dataset laplacian')
@@ -214,6 +211,7 @@ def main():
 
 ######Embed Reduced Graph######
     G = mtx2graph("{}Gs.mtx".format(reduce_results))
+    # G = mtx2graph("dataset/{}/{}_ori.mtx".format(dataset, dataset))
 
     print("%%%%%% Starting Graph Embedding %%%%%%")
     print(G.number_of_edges(), G.number_of_nodes())
@@ -239,16 +237,18 @@ def main():
 
     embed_time = time.process_time() - embed_start
 
+    levels=0
 ######Load Refinement Data######
     # print(embeddings.shape) # corase_nodes * 128
+    import pdb; pdb.set_trace()     
     levels = read_levels("{}NumLevels.txt".format(reduce_results))
     projections, coarse_laplacian = construct_proj_laplacian(
         laplacian, levels, reduce_results)
-    import pdb; pdb.set_trace()
 
 ######Refinement######
     print("%%%%%% Starting Graph Refinement %%%%%%")
     refine_start = time.process_time()
+    import pdb; pdb.set_trace()
     embeddings = refinement(levels, projections,
                             coarse_laplacian, embeddings, args.lda, args.power)
     refine_time = time.process_time() - refine_start
@@ -257,7 +257,7 @@ def main():
 ######Save Embeddings######
     embed_path = f'{args.embed_path}/{args.dataset}_level_{levels}.npy'
     print(f'embed_path: {embed_path}')
-    # np.save(embed_path, embeddings)
+    np.save(embed_path, embeddings) #! FK
 
 
 ######Evaluation######
