@@ -16,6 +16,6 @@ for i in `seq 1 5`    ## coarsening level
         esac)
         # python graphzoom.py -r ${ratio} -m deepwalk
 #        python graphzoom.py -r ${ratio} -m deepwalk -pre /yushi/ -d reddit
-        python graphzoom.py -r ${ratio} -m deepwalk -pre /mnt/yushi/ -d reddit  -f
+        python graphzoom.py -r ${ratio} -m deepwalk -pre /data/data0/yushi/ -d reddit  --proj no_fusion
 #        python graphzoom.py -r ${ratio} -m graphsage -pre /mnt/yushi/ -d reddit -f
 done

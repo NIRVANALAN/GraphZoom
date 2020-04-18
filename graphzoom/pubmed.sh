@@ -2,7 +2,7 @@
 for i in `seq 1 5`    ## coarsening level
     do
         ratio=$(case "$i" in
-            (1)  echo 20;; 
+            (1)  echo 100;; 
             (2)  echo 5;;
             (3)  echo 9;;
             (4)  echo 27;;

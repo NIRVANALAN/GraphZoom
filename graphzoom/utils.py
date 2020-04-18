@@ -51,7 +51,7 @@ def load_dataset(dataset, prefix='',):
         elif dataset in ['Amazon2M', 'reddit', 'ppi']:
             start = time.time()
             G = read_gpickle(
-                str(Path(prefix, 'dataset', dataset, f'{dataset}.gpickle')))
+                str(Path(prefix, f'{dataset}.gpickle')))
             print(f'gpickle load finish: {time.time() - start}')
         else:
             raise ValueError('dataset not known')

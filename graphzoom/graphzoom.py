@@ -240,7 +240,6 @@ def main():
     levels=0
 ######Load Refinement Data######
     # print(embeddings.shape) # corase_nodes * 128
-    import pdb; pdb.set_trace()     
     levels = read_levels("{}NumLevels.txt".format(reduce_results))
     projections, coarse_laplacian = construct_proj_laplacian(
         laplacian, levels, reduce_results)
@@ -248,7 +247,6 @@ def main():
 ######Refinement######
     print("%%%%%% Starting Graph Refinement %%%%%%")
     refine_start = time.process_time()
-    import pdb; pdb.set_trace()
     embeddings = refinement(levels, projections,
                             coarse_laplacian, embeddings, args.lda, args.power)
     refine_time = time.process_time() - refine_start
