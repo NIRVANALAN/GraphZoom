@@ -14,3 +14,4 @@
 # python train_gnn.py --dataset reddit  --self-loop --num-hidden 128 --prefix /mnt/yushi/ --coarse
 # python train_gnn.py --dataset Amazon2M --prefix /mnt/yushi/ --self-loop --num-hidden 128 --coarse
 python train_gnn.py --dataset reddit  --arch gat --n-epochs 300 --num-out-heads=8 --weight-decay=0.001 --lr 0.005 --coarse --prefix /mnt/yushi/ --coarse
+python train_gnn_refine_one_hot.py --dataset reddit --level 1 --proj one_hot --pre /data/data0/yushi/

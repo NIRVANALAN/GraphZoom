@@ -94,7 +94,7 @@ def main(args):
             data = EasyDict({
                 'graph': data.graph,
                 'labels': labels,
-                'onehot_labels': onehot_labels,
+                # 'onehot_labels': onehot_labels,
                 'features': feats,
                 # 'features': data.features,
                 'train_mask': train_mask,
@@ -105,70 +105,64 @@ def main(args):
             })
             # g = DGLGraph(data.graph)
     print(f'load data finished: {time.time() - load_data_time}')
-    if args.coarse:
-        # * load projection matrix
-        levels = args.level
-        reduce_results = f"graphzoom/reduction_results/{dataset}/fusion/"
-        projections, coarse_adj = construct_proj_laplacian(
-            original_adj, levels, reduce_results)
-        # *calculate coarse feature, labels
-        label_mask = np.expand_dims(data.train_mask, 1)
-        onehot_labels = onehot_labels * label_mask
-        for i in range(levels):
-            data.features = projections[i] @ data.features
-            onehot_labels = projections[i] @ onehot_labels
-        # coarse_labels = projections[0] @ onehot_labels
+    # * load projection matrix
+    levels = args.level
+    reduce_results = f"graphzoom/reduction_results/{dataset}/{args.proj}/"
+    projections, coarse_adj = construct_proj_laplacian(
+        original_adj, levels, reduce_results)
+    # *calculate coarse feature, labels
+    label_mask = np.expand_dims(data.train_mask, 1)
+    onehot_labels = onehot_labels * label_mask
+    # coarse_train_mask =[]
+    for i in range(levels):
+        data.features = projections[i] @ data.features
+        onehot_labels = projections[i] @ onehot_labels
+    # coarse_labels = projections[0] @ onehot_labels
         # ! add train_mask
-        rows_sum = onehot_labels.sum(axis=1)[:, np.newaxis]
-        norm_coarse_labels = onehot_labels / rows_sum
-        norm_label_entropy = Categorical(
-            torch.Tensor(norm_coarse_labels)).entropy()
-        label_entropy_mask = torch.BoolTensor(norm_label_entropy < 0.01)
-        coarse_train_mask = torch.BoolTensor(onehot_labels.sum(axis=1))
-        # coarse_train_mask = label_entropy_mask
-        # ! entropy threshold
+    rows_sum = onehot_labels.sum(axis=1)[:, np.newaxis]
+    norm_coarse_labels = onehot_labels / rows_sum
+    norm_label_entropy = Categorical(
+        torch.Tensor(norm_coarse_labels)).entropy()
+    # label_entropy_mask = torch.BoolTensor(norm_label_entropy < 0.01)  # also remove NAN
+    # coarse_train_mask.append(label_entropy_mask)
+    coarse_train_mask = torch.BoolTensor(onehot_labels.sum(axis=1))
+    # ! entropy threshold
 
-        # coarse_graph = nx.Graph(coarse_adj[1])
-        print('creating coarse DGLGraph')
-        start = time.process_time()
-        g = DGLGraph()
-        g.from_scipy_sparse_matrix(coarse_adj[1])
-        print(f'creating finished in {time.process_time() - start}')
-        # list(map(np.shape, [coarse_embed, coarse_labels]))
-        # * new train/test masks
-        coarsen_ratio = projections[0].shape[1] / projections[0].shape[0]
-        # coarse_train_mask = _sample_mask(
-        #     range(int(coarsen_ratio*len(data.train_mask.int().sum().item()))),
-        #     norm_coarse_labels.shape[0])
-        # coarse_train_mask = _sample_mask(
-        #     range(norm_coarse_labels.shape[0]),
-        # range(60),
-        # norm_coarse_labels.shape[0])
-        # coarse_test_mask = _sample_mask(
-        #     range(100, 700), norm_coarse_labels.shape[0])
-        # coarse_val_mask = _sample_mask(
-        #     range(700, 1000), norm_coarse_labels.shape[0])
+    # coarse_graph = nx.Graph(coarse_adj[1])
+    print('creating coarse DGLGraph')
+    start = time.process_time()
+    g = DGLGraph()
+    g.from_scipy_sparse_matrix(coarse_adj[levels])
+    print(f'creating finished in {time.process_time() - start}')
+    # list(map(np.shape, [coarse_embed, coarse_labels]))
+    # * new train/test masks
+    # coarsen_ratio = projections[0].shape[1] / projections[0].shape[0]
+    coarse_test_mask = _sample_mask(
+        range(0, 0), norm_coarse_labels.shape[0])
+    coarse_val_mask = _sample_mask(
+        range(0, 0), norm_coarse_labels.shape[0])
 
-        # *replace data
-        data = EasyDict({
-            'graph': g,
-            'labels': onehot_labels,
-            #     'onehot_labels': onehot_labels,
-            'features': data.features,
-            'train_mask': coarse_train_mask,
-            # 'val_mask': coarse_val_mask,
-            # 'test_mask': coarse_test_mask,
-            'num_classes': norm_coarse_labels.shape[1],
-            'num_labels': onehot_labels.shape[1],
-            'coarse': True
-        })
-    if args.coarse:
-        labels = torch.FloatTensor(data.labels)
-        loss_fcn = torch.nn.KLDivLoss(reduction='batchmean')
-        print('training coarse')
-    else:
-        labels = torch.LongTensor(data.labels)
-        loss_fcn = torch.nn.CrossEntropyLoss()
+    # *replace data
+    data = EasyDict({
+        'graph': g,
+        'labels': onehot_labels.argmax(1),
+        #     'onehot_labels': onehot_labels,
+        'features': data.features,
+        'train_mask': coarse_train_mask,
+        'val_mask': coarse_val_mask,
+        'test_mask': coarse_test_mask,
+        'num_classes': norm_coarse_labels.shape[1],
+        'num_labels': onehot_labels.shape[1],
+        'coarse': True
+    })
+# if args.coarse:
+    labels = torch.LongTensor(data.labels)
+    # loss_fcn = torch.nn.KLDivLoss(reduction='batchmean')
+    loss_fcn = torch.nn.CrossEntropyLoss()
+    print('training coarse')
+    # else:
+    #     labels = torch.LongTensor(data.labels)
+    #     loss_fcn = torch.nn.CrossEntropyLoss()
     features = torch.FloatTensor(data.features)
     if hasattr(torch, 'BoolTensor'):
         train_mask = torch.BoolTensor(data.train_mask)
@@ -181,16 +175,13 @@ def main(args):
     in_feats = features.shape[1]
     n_classes = data.num_labels
 
-    if args.gpu < 0:
-        cuda = False
-    else:
-        cuda = True
-        torch.cuda.set_device(args.gpu)
-        features = features.cuda()
-        labels = labels.cuda()
-        train_mask = train_mask.cuda()
-        val_mask = val_mask.cuda()
-        test_mask = test_mask.cuda()
+    cuda = True
+    torch.cuda.set_device(args.gpu)
+    features = features.cuda()
+    labels = labels.cuda()
+    train_mask = train_mask.cuda()
+    val_mask = val_mask.cuda()
+    test_mask = test_mask.cuda()
 
     # graph preprocess and calculate normalization factor
     # add self loop
@@ -228,7 +219,7 @@ def main(args):
                          feat_drop=args.in_drop,
                          attn_drop=args.attn_drop,
                          negative_slope=args.negative_slope,
-                         residual=args.residual, log_softmax=args.coarse)
+                         residual=args.residual, log_softmax=False)
 
     if cuda:
         model.cuda()
@@ -268,8 +259,9 @@ def main(args):
     if not args.coarse:
         acc = evaluate(model, features, labels, test_mask)
     print(h.shape)
-    np.save(f'embeddings/{(args.arch).upper()}_{dataset}_emb_level_1_mask',
-            h.detach().cpu().numpy())
+    embedding_save_path = f'embeddings/{(args.arch).upper()}_{dataset}_emb_level_{levels}_mask'
+    print(f'save embedding at {embedding_save_path}')
+    np.save(embedding_save_path, h.detach().cpu().numpy())
     torch.save(model.state_dict(),
                f'embeddings/{(args.arch).upper()}_{dataset}_emb_level_1_params.pth.tar',)
     print("Test accuracy {:.2%}".format(acc))
@@ -324,6 +316,8 @@ if __name__ == '__main__':
     parser.add_argument("--level", type=int, default=2)
     parser.add_argument("--prefix", type=str,
                         default='graphzoom', help='dataset prefix')
+    parser.add_argument("-pj", "--proj", type=str,
+                        default='fusion', help="projection matrix type")
     args = parser.parse_args()
     args = EasyDict(vars(args))
     print(args)

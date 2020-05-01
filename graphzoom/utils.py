@@ -127,13 +127,13 @@ def read_time(cputime_path):
 
 
 def construct_proj_laplacian(laplacian, levels, proj_dir):
-    coarse_laplacian = []
+    coarse_laplacian = [laplacian]
     projections = []
     for i in range(levels):
         projection_name = "{}/Projection_{}.mtx".format(proj_dir, i+1)
         projection = mtx2matrix(projection_name)
         projections.append(projection)
+        # if i != (levels-1):
+        laplacian = projection @ laplacian @ (projection.transpose())
         coarse_laplacian.append(laplacian)
-        if i != (levels-1):
-            laplacian = projection @ laplacian @ (projection.transpose())
     return projections, coarse_laplacian

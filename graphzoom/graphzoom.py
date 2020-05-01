@@ -157,6 +157,7 @@ def main():
                         help="aggregation function in graphsage")
     parser.add_argument("-w", "--sage_weighted", default=True, action="store_false",
                         help="whether consider weighted reduced graph")
+    parser.add_argument("-el", "--embed_level", type=int, default=1)
 
     args = parser.parse_args()
 
@@ -200,7 +201,7 @@ def main():
 
 ######Graph Reduction######
     # ! ignore fusion coarsen
-    if args.proj!='border':
+    if args.proj not in ['border','one_hot']:
         print("%%%%%% Starting Graph Reduction %%%%%%")
         os.system('./run_coarsening.sh {} {} {} n {}'.format(args.mcr_dir,
                                                             input_path, args.reduce_ratio, reduce_results))
@@ -213,6 +214,7 @@ def main():
     G = mtx2graph("{}Gs.mtx".format(reduce_results))
     # G = mtx2graph("dataset/{}/{}_ori.mtx".format(dataset, dataset))
 
+    levels = read_levels("{}NumLevels.txt".format(reduce_results))
     print("%%%%%% Starting Graph Embedding %%%%%%")
     print(G.number_of_edges(), G.number_of_nodes())
     embed_start = time.process_time()
@@ -231,16 +233,15 @@ def main():
         embeddings = graphsage(G, feats, args.sage_model,
                                args.sage_weighted, int(1000/args.reduce_ratio))
     elif args.embed_method == 'ft':
-        emb_path = f'../embeddings/{args.emb_arch}_{args.dataset}_emb_level_1_mask.npy'
+        emb_path = f'../embeddings/{args.emb_arch}_{args.dataset}_emb_level_{levels}_mask.npy'
+        print(f'emb_path: {emb_path}')
         # embeddings = np.load(f'{prefix}/{args.dataset}_emb_level_1.npy')
         embeddings = np.load(emb_path)
 
     embed_time = time.process_time() - embed_start
 
-    levels=0
 ######Load Refinement Data######
     # print(embeddings.shape) # corase_nodes * 128
-    levels = read_levels("{}NumLevels.txt".format(reduce_results))
     projections, coarse_laplacian = construct_proj_laplacian(
         laplacian, levels, reduce_results)
 

@@ -10,3 +10,4 @@ graphzoom/reduction_results/*.mtx
 graphzoom/dataset/reddit/fused_reddit.mtx.bk
 CPUtime.txt
 NumLevels.txt
+embeddings
