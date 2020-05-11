@@ -12,11 +12,11 @@ for i in `seq 10 10`    ## coarsening level
             # (8)  echo 12;; #4
             # (9)  echo 5;; #3
             (10)  echo 2;; 
-            (11)  echo 1;; 
         esac)
         # python graphzoom.py -r ${ratio} -m deepwalk
 #        python graphzoom.py -r ${ratio} -m deepwalk -pre /yushi/ -d reddit
 #        python graphzoom.py -r ${ratio} -m deepwalk -pre /mnt/yushi/ -d reddit 
         #python graphzoom.py -r ${ratio} -m ft -pre /mnt/yushi/ -d reddit --proj border
-        python graphzoom.py -r ${ratio} -m ft -pre /data/data0/yushi -d reddit --proj border
+        # python graphzoom.py -r ${ratio} -m deepwalk -pre /data/data0/yushi -d reddit --proj one_hot
+        python graphzoom.py -r ${ratio} -m ft -pre /data/data0/yushi -d reddit --proj one_hot
 done

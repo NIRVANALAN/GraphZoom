@@ -18,5 +18,5 @@ for i in `seq 10 10`    ## coarsening level
 #        python graphzoom.py -r ${ratio} -m deepwalk -pre /yushi/ -d reddit
 #        python graphzoom.py -r ${ratio} -m deepwalk -pre /mnt/yushi/ -d reddit 
         #python graphzoom.py -r ${ratio} -m ft -pre /mnt/yushi/ -d reddit --proj border
-        python graphzoom.py -r ${ratio} -m ft -pre /data/data0/yushi -d reddit --proj border
+        python graphzoom.py -r ${ratio} -m deepwalk -pre /data/data0/yushi -d reddit --proj border
 done
